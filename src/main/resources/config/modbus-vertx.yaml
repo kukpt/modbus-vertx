@@ -1,0 +1,15 @@
+db:
+  jakarta.persistence.spi.PersistenceProvider: org.hibernate.reactive.provider.ReactivePersistenceProvider
+  jakarta.persistence.jdbc.url: jdbc:mysql://127.0.0.1:12067/modbus_vertx
+  jakarta.persistence.jdbc.user: modbus_vertx
+  jakarta.persistence.jdbc.password: sdafe234xf)2
+  hibernate.physical_naming_strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategySnakeCaseImpl
+  hibernate.show_sql: false
+  hibernate.format_sql: false
+  hibernate.highlight_sql: false
+http:
+  port: 17888
+modbus:
+  poolSize: 4
+  queryInterval: 2
+  reconnectionInterval: 10

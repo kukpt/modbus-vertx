@@ -1,0 +1,12 @@
+### 添加设备
+POST {{host}}/device/
+Content-Type: application/json
+
+{
+  "name": "测试-01",
+  "useIp": "192.168.1.34",
+  "usePort": 503
+}
+
+### 设备列表
+GET {{host}}/device/1/10

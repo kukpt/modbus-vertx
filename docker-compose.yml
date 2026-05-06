@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: modbus-vertx
+    restart: always
+    environment:
+      # 从 .env 文件中读取变量
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_EXTERNAL_PORT}:3306"
+    volumes:
+      # 持久化数据，防止容器删除后数据丢失
+      - ${DB_DATA_PATH}:/var/lib/mysql
+      # 可选：如果你有初始化 SQL 脚本，放在 ./init-sql 目录下会自动执行
+      - ./init-sql:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      timeout: 20s
+      retries: 10
+
+networks:
+  default:
+    name: modbus_vertx

@@ -2,6 +2,8 @@ package io.github.kukpt.modbus;
 
 import io.github.kukpt.modbus.common.RespResult;
 import io.github.kukpt.modbus.entity.ModbusDevice;
+import io.github.kukpt.modbus.entity.RegisterLocator;
+import io.github.kukpt.modbus.entity.RegisterTemplate;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.vertx.UniHelper;
 import io.vertx.core.http.HttpMethod;
@@ -31,20 +33,75 @@ public class ModbusWebServer extends BaseVerticle {
     Router router = Router.router(vertx);
     router.route().handler(TimeoutHandler.create(TimeUnit.SECONDS.toMillis(30)));
     router.route().handler(BodyHandler.create());
+    // 添加设备
     router.post("/device/").handler(this::addDevice);
+    // 修改设备
+    router.put("/device/").handler(this::editDevice);
+    // 删除设备
+    router.delete("/device/:id").handler(this::deleteDevice);
+    // 查看设备
     router.get("/device/:page/:pageSize").handler(this::getDevices);
+
+    // 添加定位
+    router.post("/device/locator").handler(this::addLocator);
+
+    // 添加模板
+    router.post("/device/template").handler(this::addTemplate);
     return router;
+  }
+
+  private void addTemplate(RoutingContext ctx) {
+    RegisterTemplate template = ctx.body().asPojo(RegisterTemplate.class);
+
+    repository.template().persist(template)
+              .map(RespResult::ok)
+              .onFailure().invoke(err -> log.error("添加模板失败", err))
+              .onFailure().recoverWithItem(err -> RespResult.error("添加模板失败"))
+              .chain(ctx::json)
+              .subscribe().with(UniHelper.NOOP);
+  }
+
+  private void addLocator(RoutingContext ctx) {
+    RegisterLocator locator = ctx.body().asPojo(RegisterLocator.class);
+
+    repository.locator().persist(locator)
+              .map(RespResult::ok)
+              .onFailure().invoke(err -> log.error("添加定位器失败", err))
+              .onFailure().recoverWithItem(err -> RespResult.error("添加定位器失败"))
+              .chain(ctx::json)
+              .subscribe().with(UniHelper.NOOP);
+  }
+
+  private void deleteDevice(RoutingContext ctx) {
+    long id = Long.parseLong(ctx.pathParam("id"));
+
+    repository.device().deleteById(id)
+              .map(RespResult::ok)
+              .onFailure().invoke(err -> log.error("删除设备失败", err))
+              .onFailure().recoverWithItem(err -> RespResult.error("删除设备失败"))
+              .chain(ctx::json)
+              .subscribe().with(UniHelper.NOOP);
+  }
+
+  private void editDevice(RoutingContext ctx) {
+    ModbusDevice device = ctx.body().asPojo(ModbusDevice.class);
+    repository.device().merge(device)
+              .map(RespResult::ok)
+              .onFailure().invoke(err -> log.error("修改设备失败", err))
+              .onFailure().recoverWithItem(err -> RespResult.error("修改设备失败"))
+              .chain(ctx::json)
+              .subscribe().with(UniHelper.NOOP);
   }
 
   private void getDevices(RoutingContext ctx) {
     int page = Integer.parseInt(ctx.pathParam("page"));
     int pageSize = Integer.parseInt(ctx.pathParam("pageSize"));
     repository.device().findPage(page, pageSize)
-        .map(pr -> RespResult.ok(pr))
-        .onFailure().invoke(err -> log.error("获取列表失败!", err))
-        .onFailure().recoverWithItem(err -> RespResult.error("获取列表失败!"))
-        .chain(ctx::json)
-        .subscribe().with(UniHelper.NOOP);
+              .map(RespResult::ok)
+              .onFailure().invoke(err -> log.error("获取列表失败!", err))
+              .onFailure().recoverWithItem(err -> RespResult.error("获取列表失败!"))
+              .chain(ctx::json)
+              .subscribe().with(UniHelper.NOOP);
   }
 
   private void addDevice(RoutingContext ctx) {

@@ -2,8 +2,10 @@ package io.github.kukpt.modbus.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -40,9 +42,11 @@ public class ModbusDevice {
   private Integer usePort;
 
   @Column(name = "create_time")
+  @CreationTimestamp
   private LocalDateTime createTime;
 
   @Column(name = "update_time")
+  @UpdateTimestamp
   private LocalDateTime updateTime;
 
 

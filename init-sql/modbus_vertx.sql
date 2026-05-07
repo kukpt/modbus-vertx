@@ -9,7 +9,7 @@
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40103 SET TIME_ZONE='+08:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
@@ -25,7 +25,7 @@ DROP TABLE IF EXISTS `modbus_device`;
 CREATE TABLE `modbus_device` (
                                  `id` bigint(20) NOT NULL AUTO_INCREMENT,
                                  `name` varchar(255) DEFAULT NULL,
-                                 `online_state` varchar(255) DEFAULT NULL,
+                                 `online_state` varchar(255) DEFAULT 'OFFLINE',
                                  `use_ip` varchar(255) DEFAULT NULL,
                                  `use_port` int(11) DEFAULT NULL,
                                  `create_time` datetime DEFAULT NULL,

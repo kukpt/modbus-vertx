@@ -14,10 +14,25 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.Map;
+import io.vertx.core.json.jackson.DatabindCodec;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+
 
 @Slf4j
 public class MainVerticle extends AbstractVerticle {
+  // 在启动类或 Verticle 的 start 方法中最上方执行
+  static {
+    // 注册 JavaTimeModule 以支持 LocalDateTime
+    DatabindCodec.mapper().registerModule(new JavaTimeModule());
+    // 可选：禁用将日期序列化为时间戳数字，改为标准的 ISO-8601 字符串
+    DatabindCodec.mapper().disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+    // 如果你有多个 ObjectMapper（比如专门处理美化输出的），建议也一并注册
+    DatabindCodec.prettyMapper().registerModule(new JavaTimeModule());
+    DatabindCodec.prettyMapper().disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+  }
   public static final String CONFIG_FILE = "modbus-vertx.yaml";
 
 

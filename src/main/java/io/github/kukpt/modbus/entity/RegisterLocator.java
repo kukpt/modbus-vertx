@@ -8,8 +8,6 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author shuo
@@ -87,8 +85,5 @@ public class RegisterLocator {
   @UpdateTimestamp
   private LocalDateTime updateTime;
 
-  @ManyToMany(mappedBy = "registerLocators")
-  @ToString.Exclude
-  private List<RegisterTemplate> registerTemplate = new ArrayList<>();
 
 }

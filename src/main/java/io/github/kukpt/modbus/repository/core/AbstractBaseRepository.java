@@ -177,6 +177,40 @@ public abstract class AbstractBaseRepository<T, ID> implements BaseRepository<T,
       return q.getSingleResult();
     });
   }
+  /**
+   * 执行自定义 HQL（联表查询专用），结果映射到实体 T
+   */
+  protected Uni<T> findByHql(String hql, ID id) {
+    return sf().withSession(s -> {
+      var q = s.createQuery(hql, entityClass())
+               .setParameter("id", id)
+          .getSingleResultOrNull();
+      return q;
+    });
+  }
+
+  /**
+   * 执行自定义 HQL（联表查询专用），结果映射到实体 T
+   */
+  protected Uni<List<T>> findByHql(String hql, Map<String, Object> params) {
+    return sf().withSession(s -> {
+      var q = s.createQuery(hql, entityClass());
+      params.forEach(q::setParameter);
+      return q.getResultList();
+    });
+  }
+
+  /**
+   * 联表 DTO 投影查询（结果不是实体，是任意类型 R）
+   */
+  protected <R> Uni<List<R>> findProjection(
+      String hql, Map<String, Object> params, Class<R> resultClass) {
+    return sf().withSession(s -> {
+      var q = s.createQuery(hql, resultClass);
+      params.forEach(q::setParameter);
+      return q.getResultList();
+    });
+  }
 
   // ── 分页 ──────────────────────────────────────────────────────
 
@@ -205,7 +239,33 @@ public abstract class AbstractBaseRepository<T, ID> implements BaseRepository<T,
               .asTuple()
               .map(t -> new PageResult<>(t.getItem2(), t.getItem1(), page, pageSize));
   }
+  /**
+   * 联表分页（JOIN FETCH 场景需用 DISTINCT + countQuery 分离）
+   */
+  protected Uni<PageResult<T>> findPageByHql(
+      String dataHql, String countHql,
+      Map<String, Object> params,
+      int page, int pageSize) {
 
+    Uni<Long> totalUni = sf().withSession(s -> {
+      var q = s.createQuery(countHql, Long.class);
+      params.forEach(q::setParameter);
+      return q.getSingleResult();
+    });
+
+    Uni<List<T>> dataUni = sf().withSession(s -> {
+      var q = s.createQuery(dataHql, entityClass());
+      params.forEach(q::setParameter);
+      q.setFirstResult((page - 1) * pageSize);
+      q.setMaxResults(pageSize);
+      return q.getResultList();
+    });
+
+    return Uni.combine().all()
+              .unis(totalUni, dataUni)
+              .asTuple()
+              .map(t -> new PageResult<>(t.getItem2(), t.getItem1(), page, pageSize));
+  }
   // ── 存在性 ────────────────────────────────────────────────────
 
   @Override

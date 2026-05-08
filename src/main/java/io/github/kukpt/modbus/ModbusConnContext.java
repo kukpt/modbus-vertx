@@ -3,6 +3,7 @@ package io.github.kukpt.modbus;
 import com.google.common.util.concurrent.*;
 import io.github.kukpt.modbus.common.ModbusDeviceConn;
 import io.github.kukpt.modbus.common.ResponseJson;
+import io.github.kukpt.modbus.entity.ModbusDevice;
 import io.github.kukpt.modbus.entity.SendBitValueData;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.vertx.UniHelper;
@@ -58,7 +59,7 @@ import java.util.concurrent.*;
  * </pre>
  */
 @Slf4j
-public class ModbusConnContext extends AbstractVerticle {
+public class ModbusConnContext extends BaseVerticle {
 
   static {
     ThreadFactoryBuilder factoryBuilder = new ThreadFactoryBuilder();
@@ -115,6 +116,10 @@ public class ModbusConnContext extends AbstractVerticle {
   @Override
   public Uni<Void> asyncStart() {
     init();
+    repository.device().findDeviceWithTemplate()
+        .invoke(v -> this.addConn(v))
+        .subscribe().with(UniHelper.NOOP);
+
 
     this.executor = vertx.createSharedWorkerExecutor("modbus-pool", poolSize);
     vertx.eventBus().<JsonObject>localConsumer(REPLACE_MODBUS_CONN_TOPIC, this::addConn);
@@ -215,7 +220,7 @@ public class ModbusConnContext extends AbstractVerticle {
       Long endTime = System.currentTimeMillis();
       log.debug("NAME=[{}]-IP=[{}]-PORT=[{}] 耗时[{}]/ms", conn.getDeviceName(), conn.getUseIp(), conn.getUsePort(), endTime - startTime);
     }
-    return (Void) new Object();
+    return null;
   }
 
 
@@ -250,6 +255,29 @@ public class ModbusConnContext extends AbstractVerticle {
       return new Object();
     });
   }
+
+  /**
+   * conn 加入到Ctx
+   *
+   * @param devices
+   */
+  private void addConn(List<ModbusDevice> devices) {
+    for (ModbusDevice device : devices) {
+      ModbusDeviceConn conn = new ModbusDeviceConn(device);
+      Long key = conn.getDeviceId();
+      if (conns.containsKey(key)) {
+        conns.replace(key, conn);
+      } else {
+        conns.put(key, conn);
+      }
+      executor.executeBlockingAndForget(() -> {
+        conn.init();
+        this.publishOnLineState();
+        return new Object();
+      });
+    }
+  }
+
 
 
   @Override

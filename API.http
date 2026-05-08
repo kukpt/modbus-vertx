@@ -15,8 +15,8 @@ Content-Type: application/json
 {
   "id": 1,
   "name": "测试-01",
-  "useIp": "192.168.1.13",
-  "usePort": 503,
+  "useIp": "192.168.1.5",
+  "usePort": 508,
   "registerTemplate": {
     "id": 3
   }
@@ -28,6 +28,8 @@ DELETE {{host}}/device/15
 ### 设备列表
 GET {{host}}/device/1/10
 
+### 设备
+GET {{host}}/device/1
 
 ### 添加定位器
 POST {{host}}/device/locator

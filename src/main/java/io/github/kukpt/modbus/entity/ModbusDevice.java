@@ -49,8 +49,11 @@ public class ModbusDevice {
   @UpdateTimestamp
   private LocalDateTime updateTime;
 
+  @Column(name = "get_only_changed")
+  private Boolean getOnlyChanged;
 
-  @OneToOne
+
+  @OneToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "register_template_id")
   private RegisterTemplate registerTemplate;
 

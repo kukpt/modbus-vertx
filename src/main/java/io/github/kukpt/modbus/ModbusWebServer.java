@@ -41,13 +41,23 @@ public class ModbusWebServer extends BaseVerticle {
     router.delete("/device/:id").handler(this::deleteDevice);
     // 查看设备
     router.get("/device/:page/:pageSize").handler(this::getDevices);
-
+    // 查看设备
+    router.get("/device/:id").handler(this::getDevice);
     // 添加定位
     router.post("/device/locator").handler(this::addLocator);
-
     // 添加模板
     router.post("/device/template").handler(this::addTemplate);
     return router;
+  }
+
+  private void getDevice(RoutingContext ctx) {
+    long id = Long.parseLong(ctx.pathParam("id"));
+    repository.device().findDeviceWithTemplateById(id)
+              .map(RespResult::ok)
+              .onFailure().invoke(err -> log.error("查看设备失败", err))
+              .onFailure().recoverWithItem(err -> RespResult.error("查看设备失败"))
+              .chain(ctx::json)
+              .subscribe().with(UniHelper.NOOP);
   }
 
   private void addTemplate(RoutingContext ctx) {
@@ -96,7 +106,7 @@ public class ModbusWebServer extends BaseVerticle {
   private void getDevices(RoutingContext ctx) {
     int page = Integer.parseInt(ctx.pathParam("page"));
     int pageSize = Integer.parseInt(ctx.pathParam("pageSize"));
-    repository.device().findPage(page, pageSize)
+    repository.device().findDeviceWithTemplate(page, pageSize)
               .map(RespResult::ok)
               .onFailure().invoke(err -> log.error("获取列表失败!", err))
               .onFailure().recoverWithItem(err -> RespResult.error("获取列表失败!"))

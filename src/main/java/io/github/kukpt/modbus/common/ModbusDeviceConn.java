@@ -10,7 +10,11 @@ import com.serotonin.modbus4j.exception.ErrorResponseException;
 import com.serotonin.modbus4j.exception.ModbusInitException;
 import com.serotonin.modbus4j.exception.ModbusTransportException;
 import com.serotonin.modbus4j.locator.BaseLocator;
+import com.serotonin.modbus4j.sero.util.ArrayUtils;
 import io.github.kukpt.modbus.entity.JoinToCtxConf;
+import io.github.kukpt.modbus.entity.ModbusDevice;
+import io.github.kukpt.modbus.entity.RegisterLocator;
+import io.github.kukpt.modbus.entity.RegisterTemplate;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.groups.UniCreate;
 import io.vertx.core.json.JsonArray;
@@ -60,6 +64,30 @@ public class ModbusDeviceConn {
    */
   private final Map<Long, DeviceRegisterLocator> locators;
 
+  public ModbusDeviceConn(ModbusDevice device) {
+    this.deviceId = device.getId();
+    this.deviceName = device.getName();
+    this.useIp = device.getUseIp();
+    this.usePort = device.getUsePort();
+    if (device.getGetOnlyChanged() == null) {
+      device.setGetOnlyChanged(false);
+    }
+    this.getValueOnlyChanged = device.getGetOnlyChanged();
+    RegisterTemplate template = device.getRegisterTemplate();
+    this.locators = template.getRegisterLocators()
+                            .stream()
+                            .collect(Collectors.toMap(v -> v.getId(),
+                                v ->
+                                    new DeviceRegisterLocator(
+                                        v.getId(),
+                                        v.getSlaveId(),
+                                        v.getRegisterRange(),
+                                        v.getRegisterOffset(),
+                                        v.getDataType(),
+                                        v.getRegisterBit())));
+    this.master = ConnectionUtil.createMaster(useIp, usePort);
+  }
+
   public ModbusDeviceConn(JoinToCtxConf conf) {
     this.deviceId = conf.getDeviceId();
     this.deviceName = conf.getDeviceName();
@@ -67,9 +95,9 @@ public class ModbusDeviceConn {
     this.usePort = conf.getModbusPort();
     this.getValueOnlyChanged = conf.getGetValueOnlyChanged();
     this.locators = conf.getLocators().stream()
-      .collect(Collectors.toMap(v -> v.getId(), v ->
-        new DeviceRegisterLocator(v.getId(), v.getSlaveId(), v.getRegisterRange(), v.getRegisterOffset(), v.getDataType(), v.getRegisterBit())
-      ));
+                        .collect(Collectors.toMap(v -> v.getId(), v ->
+                            new DeviceRegisterLocator(v.getId(), v.getSlaveId(), v.getRegisterRange(), v.getRegisterOffset(), v.getDataType(), v.getRegisterBit())
+                        ));
     this.master = ConnectionUtil.createMaster(useIp, usePort);
   }
 
@@ -88,22 +116,22 @@ public class ModbusDeviceConn {
       DeviceRegisterLocator locator;
       if (locatorConf.containsKey("register_range")) { // 处理 camelCase and snake_case
         locator =
-        new DeviceRegisterLocator(
-        locatorConf.getLong("id")
-        , locatorConf.getInteger("slave_id")
-        , locatorConf.getInteger("register_range")
-        , locatorConf.getInteger("register_offset")
-        , locatorConf.getInteger("data_type")
-        , locatorConf.getInteger("register_bit", -1));
+            new DeviceRegisterLocator(
+                locatorConf.getLong("id")
+                , locatorConf.getInteger("slave_id")
+                , locatorConf.getInteger("register_range")
+                , locatorConf.getInteger("register_offset")
+                , locatorConf.getInteger("data_type")
+                , locatorConf.getInteger("register_bit", -1));
       } else {
         locator =
-        new DeviceRegisterLocator(
-        locatorConf.getLong("id")
-        , locatorConf.getInteger("slaveId")
-        , locatorConf.getInteger("registerRange")
-        , locatorConf.getInteger("registerOffset")
-        , locatorConf.getInteger("dataType")
-        , locatorConf.getInteger("registerBit", -1));
+            new DeviceRegisterLocator(
+                locatorConf.getLong("id")
+                , locatorConf.getInteger("slaveId")
+                , locatorConf.getInteger("registerRange")
+                , locatorConf.getInteger("registerOffset")
+                , locatorConf.getInteger("dataType")
+                , locatorConf.getInteger("registerBit", -1));
       }
 
       if (!Strings.isNullOrEmpty(locatorConf.getString("name"))) {
@@ -127,6 +155,7 @@ public class ModbusDeviceConn {
 
   /**
    * 按位设置值
+   *
    * @param locatorId
    * @param bit
    * @param value
@@ -175,7 +204,8 @@ public class ModbusDeviceConn {
       master.destroy();
       return from.failure(new RuntimeException("设备响应异常!"));
     } catch (Exception e) {
-      log.error("[SET_VALUE] {}: Id: [{}], IP: [{}], Port: [{}] - err: {}", e.getClass().getSimpleName(), deviceId, useIp, usePort, e.getMessage());
+      log.error("[SET_VALUE] {}: Id: [{}], IP: [{}], Port: [{}] - err: {}", e.getClass()
+                                                                             .getSimpleName(), deviceId, useIp, usePort, e.getMessage());
       return from.failure(e);
     }
   }
@@ -350,12 +380,12 @@ public class ModbusDeviceConn {
 
     public JsonObject toJson() {
       return new JsonObject()
-      .put("deviceId", deviceId)
-      .put("deviceName", deviceName)
-      .put("locatorId", locatorId)
-      .put("locatorName", locatorName)
-      .put("ts", ts)
-      .put("value", value);
+          .put("deviceId", deviceId)
+          .put("deviceName", deviceName)
+          .put("locatorId", locatorId)
+          .put("locatorName", locatorName)
+          .put("ts", ts)
+          .put("value", value);
     }
 
     private MasterValue(Long id, Long ts, Object value, Long deviceId, String deviceName, String locatorName) {

@@ -18,7 +18,7 @@ Content-Type: application/json
   "useIp": "192.168.1.5",
   "usePort": 508,
   "registerTemplate": {
-    "id": 3
+    "id": 4
   }
 }
 
@@ -36,12 +36,12 @@ POST {{host}}/device/locator
 Content-Type: application/json
 
 {
-  "name":"温度",
+  "name":"温度1",
   "slaveId":1,
   "dataType":2,
   "registerBit":-1,
   "registerRange":3,
-  "registerOffset":0
+  "registerOffset":2
 }
 
 
@@ -55,6 +55,9 @@ Content-Type: application/json
   "registerLocators": [
     {
       "id": 1
+    },
+    {
+      "id": 2
     }
   ]
 }

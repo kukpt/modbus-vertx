@@ -10,10 +10,8 @@ import com.serotonin.modbus4j.exception.ErrorResponseException;
 import com.serotonin.modbus4j.exception.ModbusInitException;
 import com.serotonin.modbus4j.exception.ModbusTransportException;
 import com.serotonin.modbus4j.locator.BaseLocator;
-import com.serotonin.modbus4j.sero.util.ArrayUtils;
 import io.github.kukpt.modbus.entity.JoinToCtxConf;
 import io.github.kukpt.modbus.entity.ModbusDevice;
-import io.github.kukpt.modbus.entity.RegisterLocator;
 import io.github.kukpt.modbus.entity.RegisterTemplate;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.groups.UniCreate;
@@ -252,6 +250,7 @@ public class ModbusDeviceConn {
       try {
         BatchResults<Long> results = master.send(read);
         locators.values().forEach(locator -> {
+          log.info("javaType: {}", locator.getJavaType().getSimpleName());
           MasterValue masterValue = new MasterValue(locator.getId(), System.currentTimeMillis(), results.getValue(locator.getId()), deviceId, deviceName, locator.locatorName);
           values.add(masterValue);
         });

@@ -24,7 +24,6 @@ public class ModbusDeviceRepository extends AbstractBaseRepository<ModbusDevice,
     return ModbusDevice.class;
   }
 
-
   public Uni<PageResult<ModbusDevice>> findDeviceWithTemplate(int page, int size) {
     String dataHql =
         """

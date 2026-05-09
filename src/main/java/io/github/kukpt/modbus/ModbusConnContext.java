@@ -7,7 +7,7 @@ import io.github.kukpt.modbus.entity.ModbusDevice;
 import io.github.kukpt.modbus.entity.SendBitValueData;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.vertx.UniHelper;
-import io.smallrye.mutiny.vertx.core.AbstractVerticle;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.WorkerExecutor;
 import io.vertx.mutiny.core.eventbus.Message;
@@ -117,8 +117,8 @@ public class ModbusConnContext extends BaseVerticle {
   public Uni<Void> asyncStart() {
     init();
     repository.device().findDeviceWithTemplate()
-        .invoke(v -> this.addConn(v))
-        .subscribe().with(UniHelper.NOOP);
+              .invoke(v -> this.addConn(v))
+              .subscribe().with(UniHelper.NOOP);
 
 
     this.executor = vertx.createSharedWorkerExecutor("modbus-pool", poolSize);
@@ -131,7 +131,7 @@ public class ModbusConnContext extends BaseVerticle {
     // 断线重连任务
     vertx.setPeriodic(TimeUnit.SECONDS.toMillis(reconnectionInterval), this::reConnectHandler);
     // 在线离线状态广播
-    vertx.setPeriodic(TimeUnit.MINUTES.toMillis(5), id -> this.publishOnLineState());
+    vertx.setPeriodic(TimeUnit.SECONDS.toMillis(10), id -> this.publishOnLineState());
     return super.asyncStart();
   }
 
@@ -141,6 +141,7 @@ public class ModbusConnContext extends BaseVerticle {
   private void publishOnLineState() {
     conns.forEach((k, v) -> {
       JsonObject payload = new JsonObject().put("deviceId", k).put("onlineState", v.isInitialized());
+      log.trace("在线状态:{}", payload);
       vertx.eventBus().publish(ONLINE_STATE, payload);
     });
   }
@@ -154,10 +155,10 @@ public class ModbusConnContext extends BaseVerticle {
     JsonObject request = msg.body();
     SendBitValueData bitValueData = new SendBitValueData(request);
     Uni.createFrom().item(conns.get(bitValueData.getDeviceId()))
-           .onItem().ifNull().failWith(() -> new RuntimeException("Connection missing"))
-           .chain(conn -> conn.setBitValue(bitValueData.getLocatorId(), bitValueData.getBit(), bitValueData.getFlag()))
-           .subscribe().with(
-               ok -> msg.reply(ResponseJson.success()),
+       .onItem().ifNull().failWith(() -> new RuntimeException("Connection missing"))
+       .chain(conn -> conn.setBitValue(bitValueData.getLocatorId(), bitValueData.getBit(), bitValueData.getFlag()))
+       .subscribe().with(
+           ok -> msg.reply(ResponseJson.success()),
            err -> msg.reply(ResponseJson.error()));
   }
 
@@ -173,10 +174,10 @@ public class ModbusConnContext extends BaseVerticle {
     Object value = request.getValue("value");
 
     executor.executeBlocking(
-        conns.get(deviceId).setValue(locatorId, value)
-             .invoke(unused -> msg.reply(ResponseJson.success()))
-             .onFailure().invoke(() -> msg.reply(ResponseJson.error())), false)
-        .subscribe().with(UniHelper.NOOP);
+                conns.get(deviceId).setValue(locatorId, value)
+                     .invoke(unused -> msg.reply(ResponseJson.success()))
+                     .onFailure().invoke(() -> msg.reply(ResponseJson.error())), false)
+            .subscribe().with(UniHelper.NOOP);
   }
 
   /**
@@ -213,10 +214,25 @@ public class ModbusConnContext extends BaseVerticle {
     if (conn.isInitialized()) {
       Long startTime = System.currentTimeMillis();
       List<ModbusDeviceConn.MasterValue> values = conn.getValues();
-      values.forEach(value -> {
-        log.trace("value: {}", value.toJson());
-        vertx.eventBus().publish(SAVE_VALUE, value.toJson());
-      });
+      if (values.isEmpty()) {
+        return null;
+      }
+      JsonObject result = new JsonObject()
+          .put("deviceId", values.get(0).getDeviceId())
+          .put("deviceName", values.get(0).getDeviceName());
+
+      List<JsonObject> locators = values.stream().map(value -> {
+        return new JsonObject()
+            .put("locatorId", value.getLocatorId())
+            .put("locatorName", value.getLocatorName())
+            .put("value", value.getValue())
+            .put("ts", value.getTs());
+      }).toList();
+
+      result.put("locators", new JsonArray(locators));
+      log.trace("value: {}", result);
+      vertx.eventBus().publish(SAVE_VALUE, result);
+
       Long endTime = System.currentTimeMillis();
       log.debug("NAME=[{}]-IP=[{}]-PORT=[{}] 耗时[{}]/ms", conn.getDeviceName(), conn.getUseIp(), conn.getUsePort(), endTime - startTime);
     }
@@ -277,7 +293,6 @@ public class ModbusConnContext extends BaseVerticle {
       });
     }
   }
-
 
 
   @Override

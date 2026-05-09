@@ -33,6 +33,7 @@ public class ModbusWebServer extends BaseVerticle {
     Router router = Router.router(vertx);
     router.route().handler(TimeoutHandler.create(TimeUnit.SECONDS.toMillis(30)));
     router.route().handler(BodyHandler.create());
+    // 设备
     // 添加设备
     router.post("/device/").handler(this::addDevice);
     // 修改设备
@@ -43,11 +44,25 @@ public class ModbusWebServer extends BaseVerticle {
     router.get("/device/:page/:pageSize").handler(this::getDevices);
     // 查看设备
     router.get("/device/:id").handler(this::getDevice);
-    // 添加定位
+    // 寄存器定位
+    // 添加寄存器定位
     router.post("/device/locator").handler(this::addLocator);
+    // 修改寄存器定位
+    router.put("/device/locator").handler(this::editLocator);
     // 添加模板
     router.post("/device/template").handler(this::addTemplate);
     return router;
+  }
+
+  private void editLocator(RoutingContext ctx) {
+    RegisterLocator locator = ctx.body().asPojo(RegisterLocator.class);
+
+    repository.locator().merge(locator)
+              .map(RespResult::ok)
+              .onFailure().invoke(err -> log.error("修改寄存器定位失败", err))
+              .onFailure().recoverWithItem(err -> RespResult.error("修改寄存器定位失败"))
+              .chain(ctx::json)
+              .subscribe().with(UniHelper.NOOP);
   }
 
   private void getDevice(RoutingContext ctx) {
@@ -62,7 +77,6 @@ public class ModbusWebServer extends BaseVerticle {
 
   private void addTemplate(RoutingContext ctx) {
     RegisterTemplate template = ctx.body().asPojo(RegisterTemplate.class);
-
     repository.template().persist(template)
               .map(RespResult::ok)
               .onFailure().invoke(err -> log.error("添加模板失败", err))
@@ -96,6 +110,7 @@ public class ModbusWebServer extends BaseVerticle {
   private void editDevice(RoutingContext ctx) {
     ModbusDevice device = ctx.body().asPojo(ModbusDevice.class);
     repository.device().merge(device)
+              .replaceWithVoid()
               .map(RespResult::ok)
               .onFailure().invoke(err -> log.error("修改设备失败", err))
               .onFailure().recoverWithItem(err -> RespResult.error("修改设备失败"))

@@ -28,7 +28,7 @@ public class RegisterTemplate {
 
   private Long version;
 
-  @ManyToMany(cascade = CascadeType.MERGE)
+  @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
   @JoinTable(
       name = "template_locator",
       joinColumns = @JoinColumn(name = "template_id"),

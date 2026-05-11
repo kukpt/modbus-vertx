@@ -8,6 +8,10 @@ Content-Type: application/json
   "usePort": 503
 }
 
+
+### 删除设备
+DELETE {{host}}/device/15
+
 ### 修改设备
 PUT {{host}}/device/
 Content-Type: application/json
@@ -22,14 +26,11 @@ Content-Type: application/json
   }
 }
 
-### 删除设备
-DELETE {{host}}/device/15
+### 设备
+GET {{host}}/device/1
 
 ### 设备列表
 GET {{host}}/device/1/10
-
-### 设备
-GET {{host}}/device/1
 
 ### 添加定位器
 POST {{host}}/device/locator
@@ -44,6 +45,28 @@ Content-Type: application/json
   "registerOffset":2
 }
 
+### 删除定位器
+DELETE {{host}}/device/locator/1
+
+### 修改定位器
+PUT {{host}}/device/locator
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "温度2",
+  "slaveId": 1,
+  "dataType": 2,
+  "registerBit": -1,
+  "registerRange": 3,
+  "registerOffset": 2
+}
+
+### 查看定位器
+GET {{host}}/device/locator/1
+
+### 查看定位器列表
+GET {{host}}/device/locator/list/1/10
 
 ### 添加模板
 POST {{host}}/device/template
@@ -61,3 +84,23 @@ Content-Type: application/json
     }
   ]
 }
+
+### 删除模板
+DELETE {{host}}/device/template/4
+
+### 修改模板
+PUT {{host}}/device/template
+Content-Type: application/json
+
+{
+  "id": 4,
+  "name": "模板1",
+  "version": "1",
+  "locators": [1,2]
+}
+
+### 查看模板
+GET {{host}}/device/template/3
+
+### 查看模板列表
+GET {{host}}/device/template/list/1/10

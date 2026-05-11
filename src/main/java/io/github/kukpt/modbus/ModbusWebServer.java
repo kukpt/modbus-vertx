@@ -4,6 +4,8 @@ import io.github.kukpt.modbus.common.RespResult;
 import io.github.kukpt.modbus.entity.ModbusDevice;
 import io.github.kukpt.modbus.entity.RegisterLocator;
 import io.github.kukpt.modbus.entity.RegisterTemplate;
+import io.github.kukpt.modbus.entity.dto.RegisterTemplateDto;
+import io.github.kukpt.modbus.repository.core.QuerySpec;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.vertx.UniHelper;
 import io.vertx.core.http.HttpMethod;
@@ -14,6 +16,7 @@ import io.vertx.mutiny.ext.web.handler.BodyHandler;
 import io.vertx.mutiny.ext.web.handler.TimeoutHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -41,104 +44,205 @@ public class ModbusWebServer extends BaseVerticle {
     // 删除设备
     router.delete("/device/:id").handler(this::deleteDevice);
     // 查看设备
-    router.get("/device/:page/:pageSize").handler(this::getDevices);
+    router.get("/device/list/:page/:pageSize").handler(this::getDevices);
     // 查看设备
     router.get("/device/:id").handler(this::getDevice);
     // 寄存器定位
     // 添加寄存器定位
     router.post("/device/locator").handler(this::addLocator);
+    // 删除寄存器定位
+    router.delete("/device/locator/:id").handler(this::deleteLocator);
     // 修改寄存器定位
     router.put("/device/locator").handler(this::editLocator);
+    // 查看寄存器定位列表
+    router.get("/device/locator/list/:page/:pageSize").handler(this::getLocators);
+    // 查看寄存器定位
+    router.get("/device/locator/:id").handler(this::getLocator);
+    // 寄存器定位模板
     // 添加模板
     router.post("/device/template").handler(this::addTemplate);
+    // 删除模板
+    router.delete("/device/template/:id").handler(this::deleteTemplate);
+    // 修改模板
+    router.put("/device/template").handler(this::editTemplate);
+    // 查看模板
+    router.get("/device/template/:id").handler(this::getTemplate);
+    // 查看模板列表
+    router.get("/device/template/list/:page/:pageSize").handler(this::getTemplates);
     return router;
   }
 
-  private void editLocator(RoutingContext ctx) {
-    RegisterLocator locator = ctx.body().asPojo(RegisterLocator.class);
 
-    repository.locator().merge(locator)
-              .map(RespResult::ok)
-              .onFailure().invoke(err -> log.error("修改寄存器定位失败", err))
-              .onFailure().recoverWithItem(err -> RespResult.error("修改寄存器定位失败"))
-              .chain(ctx::json)
-              .subscribe().with(UniHelper.NOOP);
-  }
-
-  private void getDevice(RoutingContext ctx) {
-    long id = Long.parseLong(ctx.pathParam("id"));
-    repository.device().findDeviceWithTemplateById(id)
-              .map(RespResult::ok)
-              .onFailure().invoke(err -> log.error("查看设备失败", err))
-              .onFailure().recoverWithItem(err -> RespResult.error("查看设备失败"))
-              .chain(ctx::json)
-              .subscribe().with(UniHelper.NOOP);
-  }
-
-  private void addTemplate(RoutingContext ctx) {
-    RegisterTemplate template = ctx.body().asPojo(RegisterTemplate.class);
-    repository.template().persist(template)
-              .map(RespResult::ok)
-              .onFailure().invoke(err -> log.error("添加模板失败", err))
-              .onFailure().recoverWithItem(err -> RespResult.error("添加模板失败"))
-              .chain(ctx::json)
-              .subscribe().with(UniHelper.NOOP);
-  }
-
+  /**
+   * 添加定位器
+   *
+   * @param ctx
+   */
   private void addLocator(RoutingContext ctx) {
-    RegisterLocator locator = ctx.body().asPojo(RegisterLocator.class);
-
-    repository.locator().persist(locator)
-              .map(RespResult::ok)
-              .onFailure().invoke(err -> log.error("添加定位器失败", err))
-              .onFailure().recoverWithItem(err -> RespResult.error("添加定位器失败"))
-              .chain(ctx::json)
-              .subscribe().with(UniHelper.NOOP);
+    RegisterLocator locator = parseBody(ctx, RegisterLocator.class);
+    handleResponse(repository.locator().persist(locator), ctx, "添加定位器失败");
   }
 
-  private void deleteDevice(RoutingContext ctx) {
-    long id = Long.parseLong(ctx.pathParam("id"));
-
-    repository.device().deleteById(id)
-              .map(RespResult::ok)
-              .onFailure().invoke(err -> log.error("删除设备失败", err))
-              .onFailure().recoverWithItem(err -> RespResult.error("删除设备失败"))
-              .chain(ctx::json)
-              .subscribe().with(UniHelper.NOOP);
+  /**
+   * 删除定位器
+   *
+   * @param ctx
+   */
+  private void deleteLocator(RoutingContext ctx) {
+    long id = parseId(ctx, "id");
+    handleResponse(repository.locator().deleteById(id), ctx, "删除寄存器定位失败");
   }
 
-  private void editDevice(RoutingContext ctx) {
-    ModbusDevice device = ctx.body().asPojo(ModbusDevice.class);
-    repository.device().merge(device)
-              .replaceWithVoid()
-              .map(RespResult::ok)
-              .onFailure().invoke(err -> log.error("修改设备失败", err))
-              .onFailure().recoverWithItem(err -> RespResult.error("修改设备失败"))
-              .chain(ctx::json)
-              .subscribe().with(UniHelper.NOOP);
+  /**
+   * 修改定位器
+   *
+   * @param ctx
+   */
+  private void editLocator(RoutingContext ctx) {
+    RegisterLocator locator = parseBody(ctx, RegisterLocator.class);
+    handleResponse(repository.locator().merge(locator).replaceWithVoid(), ctx, "修改寄存器定位失败");
   }
 
-  private void getDevices(RoutingContext ctx) {
-    int page = Integer.parseInt(ctx.pathParam("page"));
-    int pageSize = Integer.parseInt(ctx.pathParam("pageSize"));
-    repository.device().findDeviceWithTemplate(page, pageSize)
-              .map(RespResult::ok)
-              .onFailure().invoke(err -> log.error("获取列表失败!", err))
-              .onFailure().recoverWithItem(err -> RespResult.error("获取列表失败!"))
-              .chain(ctx::json)
-              .subscribe().with(UniHelper.NOOP);
+  /**
+   * 查看定位器
+   *
+   * @param ctx
+   */
+  private void getLocator(RoutingContext ctx) {
+    long id = parseId(ctx, "id");
+    handleResponse(repository.locator().findById(id), ctx, "查看定位器失败");
   }
 
+  /**
+   * 查看定位器列表
+   *
+   * @param ctx
+   */
+  private void getLocators(RoutingContext ctx) {
+    int page = parsePage(ctx);
+    int pageSize = parsePageSize(ctx);
+    handleResponse(repository.locator().findPage(page, pageSize), ctx, "获取列表失败");
+  }
+
+  /**
+   * 添加设备
+   *
+   * @param ctx
+   */
   private void addDevice(RoutingContext ctx) {
-    ModbusDevice device = ctx.body().asPojo(ModbusDevice.class);
-
-    repository.device().persist(device)
-              .map(d -> RespResult.ok(d))
-              .onFailure().invoke(err -> log.error("添加设备失败", err))
-              .onFailure().recoverWithItem(err -> RespResult.error("添加设备失败"))
-              .chain(ctx::json)
-              .subscribe().with(UniHelper.NOOP);
+    ModbusDevice device = parseBody(ctx, ModbusDevice.class);
+    handleResponse(repository.device().persist(device), ctx, "添加设备失败");
   }
+
+  /**
+   * 删除设备
+   *
+   * @param ctx
+   */
+  private void deleteDevice(RoutingContext ctx) {
+    long id = parseId(ctx, "id");
+    handleResponse(repository.device().deleteById(id), ctx, "删除设备失败");
+  }
+
+  /**
+   * 修改设备
+   *
+   * @param ctx
+   */
+  private void editDevice(RoutingContext ctx) {
+    ModbusDevice device = parseBody(ctx, ModbusDevice.class);
+    handleResponse(repository.device().merge(device).replaceWithVoid(), ctx, "修改设备失败");
+  }
+
+  /**
+   * 查看设备
+   *
+   * @param ctx
+   */
+  private void getDevice(RoutingContext ctx) {
+    long id = parseId(ctx, "id");
+    handleResponse(repository.device().findDeviceWithTemplateById(id), ctx, "查看设备失败");
+  }
+
+  /**
+   * 查看设备列表
+   *
+   * @param ctx
+   */
+  private void getDevices(RoutingContext ctx) {
+    int page = parsePage(ctx);
+    int pageSize = parsePageSize(ctx);
+    handleResponse(repository.device().findDeviceWithTemplate(page, pageSize), ctx, "获取列表失败!");
+  }
+
+  /**
+   * 新增模板
+   *
+   * @param ctx
+   */
+  private void addTemplate(RoutingContext ctx) {
+    RegisterTemplate template = parseBody(ctx, RegisterTemplate.class);
+    handleResponse(repository.template().persist(template), ctx, "添加模板失败");
+  }
+
+  /**
+   * 删除
+   *
+   * @param ctx
+   */
+  private void deleteTemplate(RoutingContext ctx) {
+    long id = parseId(ctx, "id");
+    handleResponse(repository.template().deleteById(id), ctx, "删除模板失败");
+  }
+
+  /**
+   * 修改模板
+   *
+   * @param ctx
+   */
+  private void editTemplate(RoutingContext ctx) {
+    RegisterTemplateDto template = parseBody(ctx, RegisterTemplateDto.class);
+    QuerySpec spec = QuerySpec.create()
+                              .in("id", Arrays.asList(template.getLocators()));
+    Uni<Void> handler = repository.template().findDeviceWithTemplateById(template.getId())
+                                .chain(v -> {
+                                  v.getRegisterLocators().clear();
+                                  return Uni.createFrom().item(v);
+                                })
+                                .chain(v ->
+                                  repository.locator().findBySpec(spec)
+                                      .map(o -> {
+                                        v.setRegisterLocators(o);
+                                        return v;
+                                      })
+                                )
+                                .chain(v -> repository.template().merge(v).replaceWithVoid());
+
+
+    handleResponse(handler, ctx, "修改模板失败");
+  }
+
+  /**
+   * 查看模板
+   *
+   * @param ctx
+   */
+  private void getTemplate(RoutingContext ctx) {
+    long id = parseId(ctx, "id");
+    handleResponse(repository.template().findDeviceWithTemplateById(id), ctx, "查看模板失败");
+  }
+
+  /**
+   * 查看模板列表
+   *
+   * @param ctx
+   */
+  private void getTemplates(RoutingContext ctx) {
+    int page = parsePage(ctx);
+    int pageSize = parsePageSize(ctx);
+    handleResponse(repository.template().findTemplateWithLocators(page, pageSize), ctx, "查看模板列表失败");
+  }
+
 
   @Override
   public Uni<Void> asyncStart() {

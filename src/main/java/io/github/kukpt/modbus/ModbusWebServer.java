@@ -13,6 +13,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.ext.web.Router;
 import io.vertx.mutiny.ext.web.RoutingContext;
 import io.vertx.mutiny.ext.web.handler.BodyHandler;
+import io.vertx.mutiny.ext.web.handler.StaticHandler;
 import io.vertx.mutiny.ext.web.handler.TimeoutHandler;
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,6 +72,7 @@ public class ModbusWebServer extends BaseVerticle {
     router.get("/device/template/:id").handler(this::getTemplate);
     // 查看模板列表
     router.get("/device/template/list/:page/:pageSize").handler(this::getTemplates);
+    router.route("/*").handler(StaticHandler.create("webroot"));
     return router;
   }
 

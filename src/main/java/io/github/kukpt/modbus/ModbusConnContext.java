@@ -203,6 +203,12 @@ public class ModbusConnContext extends BaseVerticle {
     });
   }
 
+  private void disconnect(final ModbusDeviceConn conn) {
+    executor.executeBlockingAndForget(() -> {
+      conn.destroy();
+      return null;
+    }, false);
+  }
 
   /**
    * 获取modbus设备数据
@@ -269,6 +275,7 @@ public class ModbusConnContext extends BaseVerticle {
     ModbusDeviceConn conn = new ModbusDeviceConn(conf.mapTo(ModbusDeviceTemplateLocatorVo.class));
     Long key = conn.getDeviceId();
     if (conns.containsKey(key)) {
+      disconnect(conns.get(key));
       conns.replace(key, conn);
     } else {
       conns.put(key, conn);
@@ -291,6 +298,7 @@ public class ModbusConnContext extends BaseVerticle {
       ModbusDeviceConn conn = new ModbusDeviceConn(device);
       Long key = conn.getDeviceId();
       if (conns.containsKey(key)) {
+        disconnect(conns.get(key));
         conns.replace(key, conn);
       } else {
         conns.put(key, conn);

@@ -1,5 +1,5 @@
 ### 应用配置
-POST {{host}}/device/apply/19
+POST {{host}}/device/apply/22
 
 
 ### 添加设备
@@ -8,11 +8,9 @@ Content-Type: application/json
 
 {
   "name": "测试-02",
-  "useIp": "192.168.1.22",
+  "useIp": "192.168.1.222",
   "usePort": 542,
-  "registerTemplate": {
-    "id": 4
-  }
+  "registerTemplateId": 4
 }
 
 
@@ -24,13 +22,11 @@ PUT {{host}}/device/
 Content-Type: application/json
 
 {
-  "id": 19,
+  "id": 22,
   "name": "测试-01",
-  "useIp": "192.168.1.5",
+  "useIp": "192.168.11.5",
   "usePort": 508,
-  "registerTemplate": {
-    "id": 4
-  }
+  "registerTemplateId": 4
 }
 
 ### 设备

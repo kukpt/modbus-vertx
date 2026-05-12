@@ -301,7 +301,7 @@ public abstract class AbstractBaseRepository<T, ID> implements BaseRepository<T,
 
   // ── 校验工具 ──────────────────────────────────────────────────
 
-  private void validatePage(int page, int pageSize) {
+  protected void validatePage(int page, int pageSize) {
     if (page < 1) throw new IllegalArgumentException("page must be >= 1");
     if (pageSize < 1) throw new IllegalArgumentException("pageSize must be >= 1");
   }

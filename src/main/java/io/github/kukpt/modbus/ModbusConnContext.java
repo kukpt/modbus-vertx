@@ -3,8 +3,6 @@ package io.github.kukpt.modbus;
 import com.google.common.util.concurrent.*;
 import io.github.kukpt.modbus.common.ModbusDeviceConn;
 import io.github.kukpt.modbus.common.ResponseJson;
-import io.github.kukpt.modbus.entity.DeviceValue;
-import io.github.kukpt.modbus.entity.ModbusDevice;
 import io.github.kukpt.modbus.entity.SendBitValueData;
 import io.github.kukpt.modbus.entity.dto.ModbusDeviceTemplateLocatorVo;
 import io.smallrye.mutiny.Uni;

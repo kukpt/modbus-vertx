@@ -77,6 +77,9 @@ public class RegisterLocator {
   @Column(name = "register_bit")
   private Integer registerBit;
 
+  @Column(name = "tag_name")
+  private String tagName;
+
   @Column(name = "create_time")
   @CreationTimestamp
   private LocalDateTime createTime;

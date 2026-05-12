@@ -6,6 +6,7 @@ import io.github.kukpt.modbus.common.ResponseJson;
 import io.github.kukpt.modbus.entity.DeviceValue;
 import io.github.kukpt.modbus.entity.ModbusDevice;
 import io.github.kukpt.modbus.entity.SendBitValueData;
+import io.github.kukpt.modbus.entity.dto.ModbusDeviceTemplateLocatorVo;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.vertx.UniHelper;
 import io.vertx.core.json.JsonArray;
@@ -267,7 +268,7 @@ public class ModbusConnContext extends BaseVerticle {
   private void addConn(Message<JsonObject> msg) {
     JsonObject conf = msg.body();
     log.trace("replaceOrJoinToCtx: {}", conf);
-    ModbusDeviceConn conn = new ModbusDeviceConn(conf.mapTo(ModbusDevice.class));
+    ModbusDeviceConn conn = new ModbusDeviceConn(conf.mapTo(ModbusDeviceTemplateLocatorVo.class));
     Long key = conn.getDeviceId();
     if (conns.containsKey(key)) {
       conns.replace(key, conn);
@@ -287,8 +288,8 @@ public class ModbusConnContext extends BaseVerticle {
    *
    * @param devices
    */
-  private void addConn(List<ModbusDevice> devices) {
-    for (ModbusDevice device : devices) {
+  private void addConn(List<ModbusDeviceTemplateLocatorVo> devices) {
+    for (ModbusDeviceTemplateLocatorVo device : devices) {
       ModbusDeviceConn conn = new ModbusDeviceConn(device);
       Long key = conn.getDeviceId();
       if (conns.containsKey(key)) {

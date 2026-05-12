@@ -28,7 +28,12 @@ public class RegisterTemplate {
 
   private Long version;
 
-  @OneToMany(mappedBy = "registerTemplate")
+  @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  @JoinTable(
+      name = "template_locator",
+      joinColumns = @JoinColumn(name = "template_id"),
+      inverseJoinColumns = @JoinColumn(name = "locator_id")
+  )
   @ToString.Exclude
-  private List<TemplateLocator> registerLocators = new ArrayList<>();
+  private List<RegisterLocator> registerLocators = new ArrayList<>();
 }

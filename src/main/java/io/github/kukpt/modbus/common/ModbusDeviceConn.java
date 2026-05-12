@@ -13,6 +13,7 @@ import com.serotonin.modbus4j.locator.BaseLocator;
 import io.github.kukpt.modbus.entity.JoinToCtxConf;
 import io.github.kukpt.modbus.entity.ModbusDevice;
 import io.github.kukpt.modbus.entity.RegisterTemplate;
+import io.github.kukpt.modbus.entity.dto.ModbusDeviceTemplateLocatorVo;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.groups.UniCreate;
 import io.vertx.core.json.JsonArray;
@@ -66,7 +67,7 @@ public class ModbusDeviceConn {
    */
   private final Map<Long, DeviceRegisterLocator> locators;
 
-  public ModbusDeviceConn(ModbusDevice device) {
+  public ModbusDeviceConn(ModbusDeviceTemplateLocatorVo device) {
     this.deviceId = device.getId();
     this.deviceName = device.getName();
     this.useIp = device.getUseIp();
@@ -83,11 +84,11 @@ public class ModbusDeviceConn {
                                 v ->
                                     new DeviceRegisterLocator(
                                         v.getId(),
-                                        v.getRegisterLocator().getSlaveId(),
-                                        v.getRegisterLocator().getRegisterRange(),
-                                        v.getRegisterLocator().getRegisterOffset(),
-                                        v.getRegisterLocator().getDataType(),
-                                        v.getRegisterLocator().getRegisterBit())));
+                                        v.getSlaveId(),
+                                        v.getRegisterRange(),
+                                        v.getRegisterOffset(),
+                                        v.getDataType(),
+                                        v.getRegisterBit())));
     this.master = ConnectionUtil.createMaster(useIp, usePort);
   }
 

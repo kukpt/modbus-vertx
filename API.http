@@ -34,7 +34,7 @@ Content-Type: application/json
 }
 
 ### 设备
-GET {{host}}/device/1
+GET {{host}}/device/19
 
 ### 设备列表
 GET {{host}}/device/list/1/10
@@ -107,7 +107,7 @@ Content-Type: application/json
 }
 
 ### 查看模板
-GET {{host}}/device/template/3
+GET {{host}}/device/template/4
 
 ### 查看模板列表
 GET {{host}}/device/template/list/1/10

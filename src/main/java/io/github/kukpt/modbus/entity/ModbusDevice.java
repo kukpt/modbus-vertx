@@ -67,9 +67,7 @@ public class ModbusDevice {
   @Column(name = "get_only_changed")
   private Boolean getOnlyChanged;
 
-
-  @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "register_template_id")
-  private RegisterTemplate registerTemplate;
+  @Column(name = "register_template_id")
+  private Long registerTemplateId;
 
 }

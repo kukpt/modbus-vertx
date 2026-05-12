@@ -1,18 +1,15 @@
 package io.github.kukpt.modbus;
 
-import io.github.kukpt.modbus.common.RespResult;
 import io.github.kukpt.modbus.entity.ModbusDevice;
 import io.github.kukpt.modbus.entity.RegisterLocator;
 import io.github.kukpt.modbus.entity.RegisterTemplate;
 import io.github.kukpt.modbus.entity.dto.RegisterTemplateDto;
+import io.github.kukpt.modbus.entity.dto.TemplateLocatorDto;
 import io.github.kukpt.modbus.repository.core.QuerySpec;
 import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.vertx.UniHelper;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.mutiny.core.eventbus.Message;
 import io.vertx.mutiny.ext.web.Router;
 import io.vertx.mutiny.ext.web.RoutingContext;
 import io.vertx.mutiny.ext.web.handler.BodyHandler;
@@ -244,7 +241,7 @@ public class ModbusWebServer extends BaseVerticle {
                                   .chain(v ->
                                       repository.locator().findBySpec(spec)
                                                 .map(o -> {
-//                                                  v.setRegisterLocators(o);
+                                                  v.setRegisterLocators(o);
                                                   return v;
                                                 })
                                   )
@@ -274,7 +271,6 @@ public class ModbusWebServer extends BaseVerticle {
     int pageSize = parsePageSize(ctx);
     handleResponse(repository.template().findTemplateWithLocators(page, pageSize), ctx, "查看模板列表失败");
   }
-
 
   @Override
   public Uni<Void> asyncStart() {

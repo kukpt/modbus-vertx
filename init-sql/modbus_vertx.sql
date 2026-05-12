@@ -31,12 +31,10 @@ CREATE TABLE `modbus_device` (
                                  `get_only_changed` bit(1) DEFAULT NULL,
                                  `create_time` datetime DEFAULT NULL,
                                  `update_time` datetime DEFAULT NULL,
-                                 `register_template_id` bigint DEFAULT NULL,
+                                 `register_template_id` bigint NOT NULL,
                                  PRIMARY KEY (`id`),
-                                 UNIQUE KEY `uc_modbus_device_register_template` (`register_template_id`),
-                                 UNIQUE KEY `modbus_device_ip_port_index` (`use_ip`,`use_port`),
-                                 CONSTRAINT `FK_MODBUS_DEVICE_ON_REGISTER_TEMPLATE` FOREIGN KEY (`register_template_id`) REFERENCES `register_template` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+                                 UNIQUE KEY `modbus_device_ip_port_index` (`use_ip`,`use_port`)
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -46,8 +44,8 @@ CREATE TABLE `modbus_device` (
 LOCK TABLES `modbus_device` WRITE;
 /*!40000 ALTER TABLE `modbus_device` DISABLE KEYS */;
 INSERT INTO `modbus_device` VALUES
-                                (1,'测试-01',NULL,'192.168.1.5',508,NULL,'2026-05-07 17:29:11','2026-05-09 16:40:57',4),
-                                (5,'测试-02',NULL,'192.168.1.22',503,NULL,'2026-05-11 17:22:43','2026-05-11 17:22:43',NULL);
+                                (19,'测试-01',NULL,'192.168.1.5',508,NULL,'2026-05-12 10:43:48','2026-05-12 11:57:02',4),
+                                (22,'测试-02',NULL,'192.168.1.22',542,NULL,'2026-05-12 11:32:22','2026-05-12 11:32:22',4);
 /*!40000 ALTER TABLE `modbus_device` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -69,8 +67,9 @@ CREATE TABLE `register_locator` (
                                     `register_bit` int DEFAULT NULL,
                                     `create_time` datetime DEFAULT NULL,
                                     `update_time` datetime DEFAULT NULL,
+                                    `tag_name` varchar(255) DEFAULT NULL,
                                     PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -80,8 +79,8 @@ CREATE TABLE `register_locator` (
 LOCK TABLES `register_locator` WRITE;
 /*!40000 ALTER TABLE `register_locator` DISABLE KEYS */;
 INSERT INTO `register_locator` VALUES
-                                   (1,NULL,'温度2',1,3,2,2,-1,'2026-05-07 17:23:52','2026-05-11 11:25:11'),
-                                   (2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-05-09 09:52:52','2026-05-11 11:10:31');
+                                   (1,NULL,'温度2',1,3,2,2,-1,'2026-05-07 17:23:52','2026-05-12 11:58:42',NULL),
+                                   (3,NULL,'温度2',1,3,2,2,-1,'2026-05-12 14:26:06','2026-05-12 14:26:06',NULL);
 /*!40000 ALTER TABLE `register_locator` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -97,7 +96,7 @@ CREATE TABLE `register_template` (
                                      `name` varchar(255) DEFAULT NULL,
                                      `version` bigint DEFAULT NULL,
                                      PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -107,7 +106,8 @@ CREATE TABLE `register_template` (
 LOCK TABLES `register_template` WRITE;
 /*!40000 ALTER TABLE `register_template` DISABLE KEYS */;
 INSERT INTO `register_template` VALUES
-    (4,'模板1',1);
+                                    (4,'模板1',1),
+                                    (5,'模板1',1);
 /*!40000 ALTER TABLE `register_template` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -119,12 +119,12 @@ DROP TABLE IF EXISTS `template_locator`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `template_locator` (
-                                    `locators_id` bigint NOT NULL,
-                                    `template_id` bigint NOT NULL,
-                                    KEY `fk_temloc_on_register_locator` (`locators_id`),
-                                    KEY `fk_temloc_on_register_template` (`template_id`),
-                                    CONSTRAINT `fk_temloc_on_register_locator` FOREIGN KEY (`locators_id`) REFERENCES `register_locator` (`id`),
-                                    CONSTRAINT `fk_temloc_on_register_template` FOREIGN KEY (`template_id`) REFERENCES `register_template` (`id`)
+                                    `template_id` bigint DEFAULT NULL,
+                                    `locator_id` bigint DEFAULT NULL,
+                                    KEY `FK_TEMPLATE_LOCATOR_ON_LOCATOR` (`locator_id`),
+                                    KEY `FK_TEMPLATE_LOCATOR_ON_TEMPLATE` (`template_id`),
+                                    CONSTRAINT `FK_TEMPLATE_LOCATOR_ON_LOCATOR` FOREIGN KEY (`locator_id`) REFERENCES `register_locator` (`id`),
+                                    CONSTRAINT `FK_TEMPLATE_LOCATOR_ON_TEMPLATE` FOREIGN KEY (`template_id`) REFERENCES `register_template` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -135,8 +135,8 @@ CREATE TABLE `template_locator` (
 LOCK TABLES `template_locator` WRITE;
 /*!40000 ALTER TABLE `template_locator` DISABLE KEYS */;
 INSERT INTO `template_locator` VALUES
-                                   (1,4),
-                                   (2,4);
+                                   (4,1),
+                                   (4,3);
 /*!40000 ALTER TABLE `template_locator` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -149,4 +149,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-11 17:23:21
+-- Dump completed on 2026-05-12 17:33:45

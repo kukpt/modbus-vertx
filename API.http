@@ -1,3 +1,7 @@
+### 应用配置
+POST {{host}}/device/apply/19
+
+
 ### 添加设备
 POST {{host}}/device/
 Content-Type: application/json
@@ -5,19 +9,22 @@ Content-Type: application/json
 {
   "name": "测试-02",
   "useIp": "192.168.1.22",
-  "usePort": 503
+  "usePort": 542,
+  "registerTemplate": {
+    "id": 4
+  }
 }
 
 
 ### 删除设备
-DELETE {{host}}/device/15
+DELETE {{host}}/device/14
 
 ### 修改设备
 PUT {{host}}/device/
 Content-Type: application/json
 
 {
-  "id": 1,
+  "id": 19,
   "name": "测试-01",
   "useIp": "192.168.1.5",
   "usePort": 508,
@@ -30,14 +37,14 @@ Content-Type: application/json
 GET {{host}}/device/1
 
 ### 设备列表
-GET {{host}}/device/1/10
+GET {{host}}/device/list/1/10
 
 ### 添加定位器
 POST {{host}}/device/locator
 Content-Type: application/json
 
 {
-  "name":"温度1",
+  "name":"温度2",
   "slaveId":1,
   "dataType":2,
   "registerBit":-1,
@@ -96,7 +103,7 @@ Content-Type: application/json
   "id": 4,
   "name": "模板1",
   "version": "1",
-  "locators": [1,2]
+  "locators": [1, 3]
 }
 
 ### 查看模板

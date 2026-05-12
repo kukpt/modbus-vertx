@@ -6,8 +6,6 @@ import io.github.kukpt.modbus.repository.core.PageResult;
 import io.smallrye.mutiny.Uni;
 import org.hibernate.reactive.mutiny.Mutiny;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 public class RegisterTemplateRepository extends AbstractBaseRepository<RegisterTemplate, Long> {

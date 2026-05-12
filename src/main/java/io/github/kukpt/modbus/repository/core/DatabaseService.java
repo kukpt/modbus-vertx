@@ -3,6 +3,7 @@ package io.github.kukpt.modbus.repository.core;
 import io.github.kukpt.modbus.entity.ModbusDevice;
 import io.github.kukpt.modbus.entity.RegisterLocator;
 import io.github.kukpt.modbus.entity.RegisterTemplate;
+import io.github.kukpt.modbus.entity.TemplateLocator;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.reactive.mutiny.Mutiny;
@@ -30,7 +31,8 @@ public class DatabaseService {
         configuration.addAnnotatedClasses(
             ModbusDevice.class,
             RegisterLocator.class,
-            RegisterTemplate.class);
+            RegisterTemplate.class,
+            TemplateLocator.class);
         StandardServiceRegistry build = new ReactiveServiceRegistryBuilder().applySettings(properties).build();
 
         sessionFactory = configuration.buildSessionFactory(build).unwrap(

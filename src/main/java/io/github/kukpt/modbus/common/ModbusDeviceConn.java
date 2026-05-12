@@ -57,6 +57,10 @@ public class ModbusDeviceConn {
     return master.isInitialized();
   }
 
+  public void destroy() {
+    master.destroy();
+  }
+
   /**
    * 读取寄存器里的数据
    */
@@ -74,15 +78,16 @@ public class ModbusDeviceConn {
     RegisterTemplate template = device.getRegisterTemplate();
     this.locators = template.getRegisterLocators()
                             .stream()
+                            .distinct()
                             .collect(Collectors.toMap(v -> v.getId(),
                                 v ->
                                     new DeviceRegisterLocator(
                                         v.getId(),
-                                        v.getSlaveId(),
-                                        v.getRegisterRange(),
-                                        v.getRegisterOffset(),
-                                        v.getDataType(),
-                                        v.getRegisterBit())));
+                                        v.getRegisterLocator().getSlaveId(),
+                                        v.getRegisterLocator().getRegisterRange(),
+                                        v.getRegisterLocator().getRegisterOffset(),
+                                        v.getRegisterLocator().getDataType(),
+                                        v.getRegisterLocator().getRegisterBit())));
     this.master = ConnectionUtil.createMaster(useIp, usePort);
   }
 

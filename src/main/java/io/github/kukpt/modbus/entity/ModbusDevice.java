@@ -1,5 +1,8 @@
 package io.github.kukpt.modbus.entity;
 
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.json.annotations.JsonGen;
+import io.vertx.core.json.JsonObject;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -19,7 +22,19 @@ import java.time.LocalDateTime;
 @DynamicInsert
 @DynamicUpdate
 @Table(name = "modbus_device")
+@JsonGen(publicConverter = false)
+@DataObject
 public class ModbusDevice {
+
+  public ModbusDevice(JsonObject json) {
+    ModbusDeviceConverter.fromJson(json, this);
+  }
+
+  public JsonObject toJson() {
+    JsonObject json = new JsonObject();
+    ModbusDeviceConverter.toJson(this, json);
+    return json;
+  }
 
   public enum OnlineState{
     ONLINE, OFFLINE
@@ -53,7 +68,7 @@ public class ModbusDevice {
   private Boolean getOnlyChanged;
 
 
-  @OneToOne(fetch = FetchType.EAGER)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "register_template_id")
   private RegisterTemplate registerTemplate;
 

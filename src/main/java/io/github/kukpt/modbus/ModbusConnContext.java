@@ -3,6 +3,7 @@ package io.github.kukpt.modbus;
 import com.google.common.util.concurrent.*;
 import io.github.kukpt.modbus.common.ModbusDeviceConn;
 import io.github.kukpt.modbus.common.ResponseJson;
+import io.github.kukpt.modbus.entity.DeviceValue;
 import io.github.kukpt.modbus.entity.ModbusDevice;
 import io.github.kukpt.modbus.entity.SendBitValueData;
 import io.smallrye.mutiny.Uni;
@@ -84,8 +85,14 @@ public class ModbusConnContext extends BaseVerticle {
 
   public static final String SET_MODBUS_REGISTER_BIT_VALUE = "ctx.set.register.bit.value";
 
+  /**
+   * 删除设备链接
+   */
   public static final String DEL_MODBUS_CONN_TOPIC = "ctx.del.conn";
 
+  /**
+   * 替换或加入
+   */
   public static final String REPLACE_MODBUS_CONN_TOPIC = "ctx.replaceOrJoin.conn";
 
   public static final String ONLINE_STATE = "ctx.conn.onlineState";
@@ -243,7 +250,9 @@ public class ModbusConnContext extends BaseVerticle {
   private void delConnHandler(Message<JsonObject> msg) {
     Long deviceId = msg.body().getLong("deviceId");
     if (conns.containsKey(deviceId)) {
-      conns.remove(deviceId);
+      ModbusDeviceConn conn = conns.remove(deviceId);
+      conn.destroy();
+      msg.reply(ResponseJson.success());
     } else {
       log.error("CTX 移除设备ERR: 未找到该设备 {}", deviceId);
     }
@@ -258,13 +267,14 @@ public class ModbusConnContext extends BaseVerticle {
   private void addConn(Message<JsonObject> msg) {
     JsonObject conf = msg.body();
     log.trace("replaceOrJoinToCtx: {}", conf);
-    ModbusDeviceConn conn = new ModbusDeviceConn(conf);
+    ModbusDeviceConn conn = new ModbusDeviceConn(conf.mapTo(ModbusDevice.class));
     Long key = conn.getDeviceId();
     if (conns.containsKey(key)) {
       conns.replace(key, conn);
     } else {
       conns.put(key, conn);
     }
+    msg.reply(ResponseJson.success());
     executor.executeBlockingAndForget(() -> {
       conn.init();
       this.publishOnLineState();

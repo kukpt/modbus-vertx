@@ -8,8 +8,11 @@ import io.github.kukpt.modbus.entity.dto.RegisterTemplateDto;
 import io.github.kukpt.modbus.repository.core.QuerySpec;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.vertx.UniHelper;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.mutiny.core.eventbus.Message;
 import io.vertx.mutiny.ext.web.Router;
 import io.vertx.mutiny.ext.web.RoutingContext;
 import io.vertx.mutiny.ext.web.handler.BodyHandler;
@@ -36,6 +39,8 @@ public class ModbusWebServer extends BaseVerticle {
     Router router = Router.router(vertx);
     router.route().handler(TimeoutHandler.create(TimeUnit.SECONDS.toMillis(30)));
     router.route().handler(BodyHandler.create());
+    // 应用配置
+    router.post("/device/apply/:id").handler(this::apply);
     // 设备
     // 添加设备
     router.post("/device/").handler(this::addDevice);
@@ -70,6 +75,26 @@ public class ModbusWebServer extends BaseVerticle {
     // 查看模板列表
     router.get("/device/template/list/:page/:pageSize").handler(this::getTemplates);
     return router;
+  }
+
+  /**
+   * 应用配置
+   *
+   * @param ctx
+   */
+  private void apply(RoutingContext ctx) {
+    long id = parseId(ctx, "id");
+    Uni<Void> handler =
+        repository.device().findDeviceWithTemplateById(id)
+                  .onItem().ifNull().failWith(new RuntimeException("Device with id " + id + " not found"))
+                  .map(JsonObject::mapFrom)
+                  .chain(v ->
+                      vertx.eventBus().<JsonObject>request(
+                          ModbusConnContext.REPLACE_MODBUS_CONN_TOPIC,
+                          v,
+                          new DeliveryOptions().setSendTimeout(TimeUnit.SECONDS.toMillis(30)))
+                  ).replaceWithVoid();
+    handleResponse(handler, ctx, "应用配置失败");
   }
 
 
@@ -141,7 +166,14 @@ public class ModbusWebServer extends BaseVerticle {
    */
   private void deleteDevice(RoutingContext ctx) {
     long id = parseId(ctx, "id");
-    handleResponse(repository.device().deleteById(id), ctx, "删除设备失败");
+    Uni<Void> handler = repository.device().deleteById(id)
+                                   .chain(unused ->
+                                       vertx.eventBus().request(
+                                           ModbusConnContext.DEL_MODBUS_CONN_TOPIC,
+                                           new JsonObject().put("deviceId", id),
+                                           new DeliveryOptions().setSendTimeout(TimeUnit.SECONDS.toMillis(30)))
+                                   ).replaceWithVoid();
+    handleResponse(handler, ctx, "删除设备失败");
   }
 
   /**
@@ -205,18 +237,18 @@ public class ModbusWebServer extends BaseVerticle {
     QuerySpec spec = QuerySpec.create()
                               .in("id", Arrays.asList(template.getLocators()));
     Uni<Void> handler = repository.template().findDeviceWithTemplateById(template.getId())
-                                .chain(v -> {
-                                  v.getRegisterLocators().clear();
-                                  return Uni.createFrom().item(v);
-                                })
-                                .chain(v ->
-                                  repository.locator().findBySpec(spec)
-                                      .map(o -> {
-                                        v.setRegisterLocators(o);
-                                        return v;
-                                      })
-                                )
-                                .chain(v -> repository.template().merge(v).replaceWithVoid());
+                                  .chain(v -> {
+                                    v.getRegisterLocators().clear();
+                                    return Uni.createFrom().item(v);
+                                  })
+                                  .chain(v ->
+                                      repository.locator().findBySpec(spec)
+                                                .map(o -> {
+//                                                  v.setRegisterLocators(o);
+                                                  return v;
+                                                })
+                                  )
+                                  .chain(v -> repository.template().merge(v).replaceWithVoid());
 
 
     handleResponse(handler, ctx, "修改模板失败");

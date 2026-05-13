@@ -63,7 +63,8 @@ public class MainVerticle extends AbstractVerticle {
   private Uni<JsonObject> deploy(JsonObject conf) {
     return Uni.join().all(
                   vertx.deployVerticle(new ModbusConnContext(), new DeploymentOptions().setConfig(conf)),
-                  vertx.deployVerticle(new ModbusWebServer(), new DeploymentOptions().setConfig(conf))
+                  vertx.deployVerticle(new ModbusWebServer(), new DeploymentOptions().setConfig(conf)),
+                  vertx.deployVerticle(new MqttClientVerticle(), new DeploymentOptions().setConfig(conf))
               ).andCollectFailures()
               .replaceWith(conf);
   }

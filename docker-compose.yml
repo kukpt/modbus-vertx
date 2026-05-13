@@ -3,37 +3,43 @@ version: '3.8'
 services:
   db:
     image: mysql:8.0
-    container_name: modbus-vertx
+    container_name: modbus-db
     restart: always
     environment:
-      # 从 .env 文件中读取变量
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-#    ports:
-#      - "${MYSQL_EXTERNAL_PORT}:3306"
     volumes:
-      # 持久化数据，防止容器删除后数据丢失
       - ${DB_DATA_PATH}:/var/lib/mysql
-      # 可选：如果你有初始化 SQL 脚本，放在 ./init-sql 目录下会自动执行
       - ./init-sql:/docker-entrypoint-initdb.d
     command: --default-authentication-plugin=mysql_native_password
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
-      timeout: 20s
-      retries: 10
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-uroot", "-p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   modbus-app:
-    image: ttl.sh/my-modbus-vertx-app:2h
-    container_name: modbus-vertx
+    image: ttl.sh/modbus-vertx-258a331e-b73d-40b7-9c46-12bde6715e5f:2h
+    container_name: modbus-vertx-app
     restart: always
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       - _MOD_DB_URL=jdbc:mysql://db:3306/${MYSQL_DATABASE}
       - _MOD_DB_USER=${MYSQL_USER}
       - _MOD_DB_PASSWORD=${MYSQL_PASSWORD}
+      - _MOD_MODBUS_QUERY_INTERVAL=${MODBUS_QUERY_INTERVAL}
+      - _MOD_MQTT_CLIENT_USERNAME=${MQTT_CLIENT_USERNAME}
+      - _MOD_MQTT_CLIENT_PASSWORD=${MQTT_CLIENT_PASSWORD}
+      - _MOD_MQTT_CLIENT_PORT=${MQTT_CLIENT_PORT}
+      - _MOD_MQTT_CLIENT_HOST=${MQTT_CLIENT_HOST}
+      - _MOD_MQTT_PUBLISH_TOPIC=${MQTT_PUBLISH_TOPIC}
     ports:
       - "${MODBUS_WEB_SERVER_PORT}:8080"
+
 networks:
   default:
-    name: modbus_vertx
+    name: modbus_network

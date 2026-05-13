@@ -29,8 +29,7 @@ public class ModbusWebServer extends BaseVerticle {
   private Integer httpPort;
 
   private void init() {
-    JsonObject http = config().getJsonObject("http");
-    this.httpPort = http.getInteger("port", DEFAULT_HTTP_PORT);
+    this.httpPort = config().getInteger("_MOD_HTTP_PORT", DEFAULT_HTTP_PORT);
   }
 
   private Router createRouter() {

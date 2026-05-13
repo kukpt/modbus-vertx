@@ -107,10 +107,9 @@ public class ModbusConnContext extends BaseVerticle {
   private final static int DEFAULT_RECONNECTION_INTERVAL = 10;
 
   private void init() {
-    JsonObject modbus = config().getJsonObject("modbus");
-    this.poolSize = modbus.getInteger("poolSize", DEFAULT_POOL_SIZE);
-    this.queryInterval = modbus.getInteger("queryInterval", DEFAULT_QUERY_INTERVAL);
-    this.reconnectionInterval = modbus.getInteger("reconnectionInterval", DEFAULT_RECONNECTION_INTERVAL);
+    this.poolSize = config().getInteger("_MOD_MODBUS_POOL_SIZE", DEFAULT_POOL_SIZE);
+    this.queryInterval = config().getInteger("_MOD_MODBUS_QUERY_INTERVAL", DEFAULT_QUERY_INTERVAL);
+    this.reconnectionInterval = config().getInteger("_MOD_MODBUS_RECONNECTION_INTERVAL", DEFAULT_RECONNECTION_INTERVAL);
   }
 
   private int poolSize; // 线程池大小

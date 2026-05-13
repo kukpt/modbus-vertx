@@ -75,9 +75,17 @@ public class MainVerticle extends AbstractVerticle {
    * @return
    */
   private Uni<JsonObject> createSessionFactory(JsonObject conf) {
+    Map<String, Object> db = Map.of(
+        "jakarta.persistence.spi.PersistenceProvider", conf.getString("_MOD_DB_PROVIDER"),
+        "jakarta.persistence.jdbc.url", conf.getString("_MOD_DB_URL"),
+        "jakarta.persistence.jdbc.user", conf.getString("_MOD_DB_USER"),
+        "jakarta.persistence.jdbc.password", conf.getString("_MOD_DB_PASSWORD"),
+        "hibernate.physical_naming_strategy", conf.getString("_MOD_DB_PHYSICAL_NAMING_STRATEGY"),
+        "hibernate.show_sql", conf.getString("_MOD_DB_SHOW_SQL"),
+        "hibernate.format_sql", conf.getString("_MOD_DB_FORMAT_SQL"),
+        "hibernate.highlight_sql", conf.getString("_MOD_DB_HIGHLIGHT_SQL")
+    );
 
-    Map<String, Object> db = conf.getJsonObject("db")
-                                 .getMap();
     return vertx.executeBlocking(Uni.createFrom().item(() -> {
       DatabaseService.initialize(db);
       return conf;
@@ -95,18 +103,22 @@ public class MainVerticle extends AbstractVerticle {
     String cliConfigDir = new StringBuilder(userDir).append(File.separator).append("config").append(File.separator)
                                                     .append(CONFIG_FILE).toString();
 
+    ConfigRetrieverOptions opts = new ConfigRetrieverOptions();
+
+
     ConfigStoreOptions defaultConfig = new ConfigStoreOptions()
         .setType("file")
         .setFormat("yaml")
         .setConfig(new JsonObject().put("path", "config" + File.separator + CONFIG_FILE));
+    opts.addStore(defaultConfig);
+
     ConfigStoreOptions config = new ConfigStoreOptions()
         .setOptional(true)
         .setType("file")
         .setFormat("yaml")
         .setConfig(new JsonObject().put("path", cliConfigDir));
-    ConfigRetrieverOptions opts = new ConfigRetrieverOptions();
-    opts.addStore(defaultConfig)
-        .addStore(config);
+    opts.addStore(config);
+
     File file = new File(cliConfigDir);
     ConfigStoreOptions cliConfig = new ConfigStoreOptions();
     if (file.exists()) {
@@ -116,6 +128,12 @@ public class MainVerticle extends AbstractVerticle {
           .setConfig(new JsonObject().put("path", cliConfigDir));
       opts.addStore(cliConfig);
     }
+
+    ConfigStoreOptions env = new ConfigStoreOptions()
+        .setType("env")
+        .setConfig(new JsonObject().put("raw-data", true));
+    opts.addStore(env);
+
 
     ConfigRetriever cfgRetriever = ConfigRetriever.create(vertx, opts);
     cfgRetriever.listen(c -> {

@@ -11,8 +11,8 @@ services:
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-    ports:
-      - "${MYSQL_EXTERNAL_PORT}:3306"
+#    ports:
+#      - "${MYSQL_EXTERNAL_PORT}:3306"
     volumes:
       # 持久化数据，防止容器删除后数据丢失
       - ${DB_DATA_PATH}:/var/lib/mysql
@@ -24,6 +24,16 @@ services:
       timeout: 20s
       retries: 10
 
+  modbus-app:
+    image: ttl.sh/my-modbus-vertx-app:2h
+    container_name: modbus-vertx
+    restart: always
+    environment:
+      - _MOD_DB_URL=jdbc:mysql://db:3306/${MYSQL_DATABASE}
+      - _MOD_DB_USER=${MYSQL_USER}
+      - _MOD_DB_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - "${MODBUS_WEB_SERVER_PORT}:8080"
 networks:
   default:
     name: modbus_vertx

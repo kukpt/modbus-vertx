@@ -29,7 +29,12 @@ public class ModbusWebServer extends BaseVerticle {
   private Integer httpPort;
 
   private void init() {
-    this.httpPort = config().getInteger("_MOD_HTTP_PORT", DEFAULT_HTTP_PORT);
+    Object v = config().getValue("_MOD_HTTP_PORT", DEFAULT_HTTP_PORT);
+    if (v instanceof Number) {
+      this.httpPort = Integer.valueOf(String.valueOf((v)));
+    } else {
+      this.httpPort = DEFAULT_HTTP_PORT;
+    }
   }
 
   private Router createRouter() {

@@ -107,9 +107,12 @@ public class ModbusConnContext extends BaseVerticle {
   private final static int DEFAULT_RECONNECTION_INTERVAL = 10;
 
   private void init() {
-    this.poolSize = config().getInteger("_MOD_MODBUS_POOL_SIZE", DEFAULT_POOL_SIZE);
-    this.queryInterval = config().getInteger("_MOD_MODBUS_QUERY_INTERVAL", DEFAULT_QUERY_INTERVAL);
-    this.reconnectionInterval = config().getInteger("_MOD_MODBUS_RECONNECTION_INTERVAL", DEFAULT_RECONNECTION_INTERVAL);
+    Object ps = config().getValue("_MOD_MODBUS_POOL_SIZE", DEFAULT_POOL_SIZE);
+    Object qi = config().getValue("_MOD_MODBUS_QUERY_INTERVAL", DEFAULT_QUERY_INTERVAL);
+    Object rei = config().getValue("_MOD_MODBUS_RECONNECTION_INTERVAL", DEFAULT_RECONNECTION_INTERVAL);
+    this.poolSize = Integer.parseInt(String.valueOf(ps));;
+    this.queryInterval =Integer.parseInt(String.valueOf(qi));
+    this.reconnectionInterval = Integer.parseInt(String.valueOf(rei));
   }
 
   private int poolSize; // 线程池大小
@@ -237,6 +240,8 @@ public class ModbusConnContext extends BaseVerticle {
             .put("locatorId", value.getLocatorId())
             .put("locatorName", value.getLocatorName())
             .put("value", value.getValue())
+            .put("javaType", value.getJavaType())
+            .put("tagName", value.getTagName())
             .put("ts", value.getTs());
       }).toList();
 

@@ -90,8 +90,9 @@ public class MqttClientVerticle extends AbstractVerticle {
         scheduleReconnect();
       }
     });
-
-    client.connect(config().getInteger("_MOD_MQTT_CLIENT_PORT"), config().getString("_MOD_MQTT_CLIENT_HOST"))
+    Object v = config().getValue("_MOD_MQTT_CLIENT_PORT");
+    int port = Integer.parseInt(String.valueOf(v));
+    client.connect(port, config().getString("_MOD_MQTT_CLIENT_HOST"))
           .subscribe()
           .with(msg -> {
             connecting = false;

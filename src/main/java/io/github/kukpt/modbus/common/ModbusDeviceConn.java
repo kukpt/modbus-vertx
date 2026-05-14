@@ -88,7 +88,9 @@ public class ModbusDeviceConn {
                                         v.getRegisterRange(),
                                         v.getRegisterOffset(),
                                         v.getDataType(),
-                                        v.getRegisterBit())));
+                                        v.getRegisterBit(),
+                                        v.getTagName(),
+                                        v.getName())));
     this.master = ConnectionUtil.createMaster(useIp, usePort);
   }
 
@@ -100,7 +102,7 @@ public class ModbusDeviceConn {
     this.getValueOnlyChanged = conf.getGetValueOnlyChanged();
     this.locators = conf.getLocators().stream()
                         .collect(Collectors.toMap(v -> v.getId(), v ->
-                            new DeviceRegisterLocator(v.getId(), v.getSlaveId(), v.getRegisterRange(), v.getRegisterOffset(), v.getDataType(), v.getRegisterBit())
+                            new DeviceRegisterLocator(v.getId(), v.getSlaveId(), v.getRegisterRange(), v.getRegisterOffset(), v.getDataType(), v.getRegisterBit(), v.getTagName(), v.getName())
                         ));
     this.master = ConnectionUtil.createMaster(useIp, usePort);
   }
@@ -126,7 +128,9 @@ public class ModbusDeviceConn {
                 , locatorConf.getInteger("register_range")
                 , locatorConf.getInteger("register_offset")
                 , locatorConf.getInteger("data_type")
-                , locatorConf.getInteger("register_bit", -1));
+                , locatorConf.getInteger("register_bit", -1)
+                , locatorConf.getString("tag_name")
+                , locatorConf.getString("name"));
       } else {
         locator =
             new DeviceRegisterLocator(
@@ -135,7 +139,9 @@ public class ModbusDeviceConn {
                 , locatorConf.getInteger("registerRange")
                 , locatorConf.getInteger("registerOffset")
                 , locatorConf.getInteger("dataType")
-                , locatorConf.getInteger("registerBit", -1));
+                , locatorConf.getInteger("registerBit", -1)
+                , locatorConf.getString("tagName")
+                , locatorConf.getString("name"));
       }
 
       if (!Strings.isNullOrEmpty(locatorConf.getString("name"))) {
@@ -256,8 +262,15 @@ public class ModbusDeviceConn {
       try {
         BatchResults<Long> results = master.send(read);
         locators.values().forEach(locator -> {
-          log.info("javaType: {}", locator.getJavaType().getSimpleName());
-          MasterValue masterValue = new MasterValue(locator.getId(), System.currentTimeMillis(), results.getValue(locator.getId()), deviceId, deviceName, locator.locatorName);
+          MasterValue masterValue = new MasterValue(
+              locator.getId(),
+              System.currentTimeMillis(),
+              results.getValue(locator.getId()),
+              deviceId,
+              deviceName,
+              locator.locatorName,
+              locator.tagName,
+              locator.javaType.getSimpleName());
           values.add(masterValue);
         });
       } catch (ModbusTransportException e) {
@@ -283,7 +296,15 @@ public class ModbusDeviceConn {
         locators.values().forEach(locator -> {
           locator.value = results.getValue(locator.getId());
           if (locator.valueIsChanged()) {
-            MasterValue masterValue = new MasterValue(locator.getId(), System.currentTimeMillis(), results.getValue(locator.getId()), deviceId, deviceName, locator.locatorName);
+            MasterValue masterValue = new MasterValue(
+                locator.getId(),
+                System.currentTimeMillis(),
+                results.getValue(locator.getId()),
+                deviceId,
+                deviceName,
+                locator.locatorName,
+                locator.tagName,
+                locator.javaType.getSimpleName());
             values.add(masterValue);
           }
         });
@@ -325,7 +346,7 @@ public class ModbusDeviceConn {
 
     @Getter
     @Setter
-    private String locatorName = "";
+    private String locatorName;
 
     private final BaseLocator locator;
 
@@ -338,10 +359,15 @@ public class ModbusDeviceConn {
     @Getter
     private final Class<?> javaType;
 
-    public DeviceRegisterLocator(Long id, Integer slaveId, Integer range, Integer offset, Integer dataType, Integer bit) {
+    @Getter
+    private final String tagName;
+
+    public DeviceRegisterLocator(Long id, Integer slaveId, Integer range, Integer offset, Integer dataType, Integer bit, String tagName, String locatorName) {
       this.dateType = dataType;
       this.javaType = DataType.getJavaType(dateType);
       this.id = id;
+      this.tagName = tagName;
+      this.locatorName = locatorName;
       this.locator = this.createLocator(slaveId, range, offset, dataType, bit);
     }
 
@@ -393,13 +419,15 @@ public class ModbusDeviceConn {
           .put("value", value);
     }
 
-    private MasterValue(Long id, Long ts, Object value, Long deviceId, String deviceName, String locatorName) {
+    private MasterValue(Long id, Long ts, Object value, Long deviceId, String deviceName, String locatorName, String tagName, String javaType) {
       this.locatorId = id;
       this.ts = ts;
       this.value = value;
       this.deviceId = deviceId;
       this.deviceName = deviceName;
       this.locatorName = locatorName;
+      this.tagName = tagName;
+      this.javaType = javaType;
     }
 
     private Long deviceId;
@@ -412,7 +440,13 @@ public class ModbusDeviceConn {
     @Setter
     private String locatorName;
 
+    @Setter
+    private String tagName;
+
     private Long ts;
+
+    @Setter
+    private String javaType;
 
     private Object value;
   }

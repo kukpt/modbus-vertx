@@ -30,7 +30,7 @@ ENV JAVA_OPTS="-Xms256m -Xmx512m" \
     VERTICLE_HOME="/opt/vertx"
 
 # 暴露 Vert.x 默认端口（根据你的应用修改）
-EXPOSE 8080
+EXPOSE 17888
 
 # 启动命令
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

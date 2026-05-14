@@ -70,4 +70,10 @@ public class ModbusDevice {
   @Column(name = "register_template_id")
   private Long registerTemplateId;
 
+  @Column(name = "mqtt_publish_topic")
+  private String mqttPublishTopic;
+
+  @Column(name = "collect_interval")
+  private Integer collectInterval;
+
 }

@@ -20,6 +20,8 @@ public class ModbusDeviceTemplateLocatorVo {
     vo.setCreateTime(device.getCreateTime());
     vo.setUpdateTime(device.getUpdateTime());
     vo.setGetOnlyChanged(device.getGetOnlyChanged());
+    vo.setMqttPublishTopic(device.getMqttPublishTopic());
+    vo.setCollectInterval(device.getCollectInterval());
     return vo;
   }
 
@@ -40,4 +42,8 @@ public class ModbusDeviceTemplateLocatorVo {
   private Boolean getOnlyChanged;
 
   private RegisterTemplate registerTemplate;
+
+  private String mqttPublishTopic;
+
+  private Integer collectInterval;
 }

@@ -7,6 +7,8 @@ import io.github.kukpt.modbus.entity.SendBitValueData;
 import io.github.kukpt.modbus.entity.dto.ModbusDeviceTemplateLocatorVo;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.vertx.UniHelper;
+import io.vertx.core.MultiMap;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.WorkerExecutor;
@@ -247,7 +249,15 @@ public class ModbusConnContext extends BaseVerticle {
 
       result.put("locators", new JsonArray(locators));
       log.trace("value: {}", result);
-      vertx.eventBus().publish(SAVE_VALUE, result);
+      MultiMap headers = MultiMap.caseInsensitiveMultiMap();
+      if (conn.getMqttPublishTopic() != null) {
+        headers.add("mqttPublishTopic", conn.getMqttPublishTopic());
+      } else {
+        String topic = String.format("/device/modbus/%s/message/report", conn.getDeviceId());
+        headers.add("mqttPublishTopic", topic);
+      }
+
+      vertx.eventBus().publish(SAVE_VALUE, result, new DeliveryOptions().setHeaders(headers));
 
       Long endTime = System.currentTimeMillis();
       log.debug("NAME=[{}]-IP=[{}]-PORT=[{}] 耗时[{}]/ms", conn.getDeviceName(), conn.getUseIp(), conn.getUsePort(), endTime - startTime);

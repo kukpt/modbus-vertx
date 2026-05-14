@@ -37,6 +37,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ModbusDeviceConn {
 
+  /**
+   * MQTT 推送主题
+   */
+  @Getter
+  private final String mqttPublishTopic;
+  /**
+   * mdobus 问询间隔
+   */
+  @Getter
+  private final Integer collectInterval;
+
   @Getter
   private final Long deviceId;
 
@@ -72,6 +83,8 @@ public class ModbusDeviceConn {
     this.deviceName = device.getName();
     this.useIp = device.getUseIp();
     this.usePort = device.getUsePort();
+    this.mqttPublishTopic = device.getMqttPublishTopic();
+    this.collectInterval = device.getCollectInterval();
     if (device.getGetOnlyChanged() == null) {
       device.setGetOnlyChanged(false);
     }
@@ -91,64 +104,6 @@ public class ModbusDeviceConn {
                                         v.getRegisterBit(),
                                         v.getTagName(),
                                         v.getName())));
-    this.master = ConnectionUtil.createMaster(useIp, usePort);
-  }
-
-  public ModbusDeviceConn(JoinToCtxConf conf) {
-    this.deviceId = conf.getDeviceId();
-    this.deviceName = conf.getDeviceName();
-    this.useIp = conf.getModbusIp();
-    this.usePort = conf.getModbusPort();
-    this.getValueOnlyChanged = conf.getGetValueOnlyChanged();
-    this.locators = conf.getLocators().stream()
-                        .collect(Collectors.toMap(v -> v.getId(), v ->
-                            new DeviceRegisterLocator(v.getId(), v.getSlaveId(), v.getRegisterRange(), v.getRegisterOffset(), v.getDataType(), v.getRegisterBit(), v.getTagName(), v.getName())
-                        ));
-    this.master = ConnectionUtil.createMaster(useIp, usePort);
-  }
-
-  public ModbusDeviceConn(JsonObject config) {
-    this.deviceId = config.getLong("deviceId");
-    if (!Strings.isNullOrEmpty(config.getString("deviceName"))) {
-      this.deviceName = config.getString("deviceName");
-    }
-    this.useIp = config.getString("modbusIp");
-    this.usePort = config.getInteger("modbusPort");
-    this.getValueOnlyChanged = config.getBoolean("getValueOnlyChanged", false);
-    JsonArray arrays = config.getJsonArray("locators");
-    this.locators = new HashMap<>(arrays.size());
-    for (int i = 0; i < arrays.size(); i++) {
-      JsonObject locatorConf = arrays.getJsonObject(i);
-      DeviceRegisterLocator locator;
-      if (locatorConf.containsKey("register_range")) { // 处理 camelCase and snake_case
-        locator =
-            new DeviceRegisterLocator(
-                locatorConf.getLong("id")
-                , locatorConf.getInteger("slave_id")
-                , locatorConf.getInteger("register_range")
-                , locatorConf.getInteger("register_offset")
-                , locatorConf.getInteger("data_type")
-                , locatorConf.getInteger("register_bit", -1)
-                , locatorConf.getString("tag_name")
-                , locatorConf.getString("name"));
-      } else {
-        locator =
-            new DeviceRegisterLocator(
-                locatorConf.getLong("id")
-                , locatorConf.getInteger("slaveId")
-                , locatorConf.getInteger("registerRange")
-                , locatorConf.getInteger("registerOffset")
-                , locatorConf.getInteger("dataType")
-                , locatorConf.getInteger("registerBit", -1)
-                , locatorConf.getString("tagName")
-                , locatorConf.getString("name"));
-      }
-
-      if (!Strings.isNullOrEmpty(locatorConf.getString("name"))) {
-        locator.setLocatorName(locatorConf.getString("name"));
-      }
-      locators.put(locator.getId(), locator);
-    }
     this.master = ConnectionUtil.createMaster(useIp, usePort);
   }
 

@@ -30,7 +30,7 @@ public class MqttClientVerticle extends AbstractVerticle {
       MqttClient client = mqttClient;
       if (client != null && client.isConnected()) {
         client.publish(
-                    config().getString("_MOD_MQTT_PUBLISH_TOPIC"),
+                    ebMsg.headers().get("mqttPublishTopic"),
                     Buffer.newInstance(ebMsg.body().toBuffer()),
                     MqttQoS.AT_MOST_ONCE,
                     false,

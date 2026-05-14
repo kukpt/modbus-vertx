@@ -216,7 +216,7 @@ function renderTemplates(rows = state.templates.rows) {
 function renderDevices(rows = state.devices.rows) {
     const tbody = $("devicesTable");
     if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty">暂无 Modbus 设备</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="empty">暂无 Modbus 设备</td></tr>';
     } else {
         tbody.innerHTML = rows.map((row) => `
       <tr>
@@ -225,6 +225,8 @@ function renderDevices(rows = state.devices.rows) {
         <td>${valueOrDash(row.useIp)}:${valueOrDash(row.usePort)}</td>
         <td>${valueOrDash(row.onlineState)}</td>
         <td>${row.getOnlyChanged ? "是" : "否"}</td>
+        <td>${valueOrDash(row.mqttPublishTopic)}</td>
+        <td>${valueOrDash(row.collectInterval)}</td>
         <td>${valueOrDash(templateName(row.registerTemplate))}</td>
         <td>
           <div class="row-actions">
@@ -471,6 +473,8 @@ function deviceForm(device = {}, templates = []) {
     ${inputField("usePort", "端口", device.usePort, "number", "required")}
     ${selectField("onlineState", "在线状态", device.onlineState, ["ONLINE", "OFFLINE"])}
     ${checkboxField("getOnlyChanged", "仅变化上报", device.getOnlyChanged)}
+    ${inputField("mqttPublishTopic", "MQTT 发布主题", device.mqttPublishTopic)}
+    ${inputField("collectInterval", "采集间隔", device.collectInterval, "number", "min=\"1\"")}
   `);
 }
 
@@ -482,7 +486,9 @@ function devicePayload(formData, id) {
         usePort: toNumber(formData.get("usePort")),
         onlineState: formData.get("onlineState") || null,
         getOnlyChanged: formData.get("getOnlyChanged") === "on",
-        registerTemplateId: toNumber(formData.get("registerTemplateId"))
+        registerTemplateId: toNumber(formData.get("registerTemplateId")),
+        mqttPublishTopic: formData.get("mqttPublishTopic") || null,
+        collectInterval: toNumber(formData.get("collectInterval"))
     };
 }
 

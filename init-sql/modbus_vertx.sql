@@ -32,6 +32,8 @@ CREATE TABLE `modbus_device` (
                                  `create_time` datetime DEFAULT NULL,
                                  `update_time` datetime DEFAULT NULL,
                                  `register_template_id` bigint NOT NULL,
+                                 `mqtt_publish_topic`   varchar(255) null,
+                                 `collect_interval`     int          null,
                                  PRIMARY KEY (`id`),
                                  KEY `modbus_device_ip_port_index` (`use_ip`,`use_port`)
 ) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -44,8 +46,8 @@ CREATE TABLE `modbus_device` (
 LOCK TABLES `modbus_device` WRITE;
 /*!40000 ALTER TABLE `modbus_device` DISABLE KEYS */;
 INSERT INTO `modbus_device` VALUES
-                                (19,'测试-01',NULL,'192.168.1.5',508,NULL,'2026-05-12 10:43:48','2026-05-12 11:57:02',4),
-                                (22,'测试-02',NULL,'192.168.1.5',508,'\0','2026-05-12 11:32:22','2026-05-14 17:13:34',5);
+                                (19,'测试-01',NULL,'192.168.1.5',508,NULL,'2026-05-12 10:43:48','2026-05-12 11:57:02',4, NULL, NULL),
+                                (22,'测试-02',NULL,'192.168.1.5',508,'\0','2026-05-12 11:32:22','2026-05-14 17:13:34',5, NULL, NULL);
 /*!40000 ALTER TABLE `modbus_device` ENABLE KEYS */;
 UNLOCK TABLES;
 

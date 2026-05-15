@@ -41,7 +41,14 @@ public class ModbusDeviceConn {
    * MQTT 推送主题
    */
   @Getter
-  private final String mqttPublishTopic;
+  private final String deviceTagName;
+  @Getter
+  private final String templateTagName;
+  @Getter
+  private final Long templateId;
+
+  @Getter
+  private final String templateName;
   /**
    * mdobus 问询间隔
    */
@@ -83,8 +90,11 @@ public class ModbusDeviceConn {
     this.deviceName = device.getName();
     this.useIp = device.getUseIp();
     this.usePort = device.getUsePort();
-    this.mqttPublishTopic = device.getMqttPublishTopic();
+    this.deviceTagName = device.getDeviceTagName();
     this.collectInterval = device.getCollectInterval();
+    this.templateId = device.getRegisterTemplate().getId();
+    this.templateName = device.getRegisterTemplate().getName();
+    this.templateTagName = device.getRegisterTemplate().getTagName();
     if (device.getGetOnlyChanged() == null) {
       device.setGetOnlyChanged(false);
     }

@@ -199,6 +199,7 @@ function renderTemplates(rows = state.templates.rows) {
       <tr>
         <td>${row.id}</td>
         <td>${valueOrDash(row.name)}</td>
+        <td>${valueOrDash(row.tagName)}</td>
         <td>${valueOrDash(row.version)}</td>
         <td>${locatorBadges(row.registerLocators)}</td>
         <td>
@@ -222,10 +223,10 @@ function renderDevices(rows = state.devices.rows) {
       <tr>
         <td>${row.id}</td>
         <td>${valueOrDash(row.name)}</td>
+        <td>${valueOrDash(row.deviceTagName)}</td>
         <td>${valueOrDash(row.useIp)}:${valueOrDash(row.usePort)}</td>
         <td>${valueOrDash(row.onlineState)}</td>
         <td>${row.getOnlyChanged ? "是" : "否"}</td>
-        <td>${valueOrDash(row.mqttPublishTopic)}</td>
         <td>${valueOrDash(row.collectInterval)}</td>
         <td>${valueOrDash(templateName(row.registerTemplate))}</td>
         <td>
@@ -420,6 +421,7 @@ function templateForm(template = {}, locators = []) {
     const selectedIds = (template.registerLocators || []).map((item) => item.id);
     return formShell(`
     ${inputField("name", "名称", template.name, "text", "required")}
+    ${inputField("tagName", "标签", template.tagName, "text", "required")}
     ${inputField("version", "版本", template.version, "number", "required")}
     <div class="field full">
       <label>批量关联定位器</label>
@@ -434,6 +436,7 @@ function templatePayload(formData, id) {
         return {
             id,
             name: formData.get("name"),
+            tagName: formData.get("tagName"),
             version: toNumber(formData.get("version")),
             locators: locatorIds
         };
@@ -441,7 +444,8 @@ function templatePayload(formData, id) {
     return {
         name: formData.get("name"),
         version: toNumber(formData.get("version")),
-        registerLocators: locatorIds.map((locatorId) => ({id: locatorId}))
+        tagName: formData.get("tagName"),
+        locators: locatorIds
     };
 }
 
@@ -473,7 +477,7 @@ function deviceForm(device = {}, templates = []) {
     ${inputField("usePort", "端口", device.usePort, "number", "required")}
     ${selectField("onlineState", "在线状态", device.onlineState, ["ONLINE", "OFFLINE"])}
     ${checkboxField("getOnlyChanged", "仅变化上报", device.getOnlyChanged)}
-    ${inputField("mqttPublishTopic", "MQTT 发布主题", device.mqttPublishTopic)}
+    ${inputField("tagName", "标签", device.deviceTagName)}
     ${inputField("collectInterval", "采集间隔", device.collectInterval, "number", "min=\"1\"")}
   `);
 }
@@ -487,7 +491,7 @@ function devicePayload(formData, id) {
         onlineState: formData.get("onlineState") || null,
         getOnlyChanged: formData.get("getOnlyChanged") === "on",
         registerTemplateId: toNumber(formData.get("registerTemplateId")),
-        mqttPublishTopic: formData.get("mqttPublishTopic") || null,
+        tagName: formData.get("tagName") || null,
         collectInterval: toNumber(formData.get("collectInterval"))
     };
 }

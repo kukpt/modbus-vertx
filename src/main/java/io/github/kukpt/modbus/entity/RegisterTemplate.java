@@ -26,6 +26,9 @@ public class RegisterTemplate {
 
   private String name;
 
+  @Column(name = "tag_name")
+  private String tagName;
+
   private Long version;
 
   @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})

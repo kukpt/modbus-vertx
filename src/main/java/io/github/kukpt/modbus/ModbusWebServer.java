@@ -216,8 +216,25 @@ public class ModbusWebServer extends BaseVerticle {
    * @param ctx
    */
   private void addTemplate(RoutingContext ctx) {
-    RegisterTemplate template = parseBody(ctx, RegisterTemplate.class);
-    handleResponse(repository.template().persist(template), ctx, "添加模板失败");
+
+    RegisterTemplateDto template = parseBody(ctx, RegisterTemplateDto.class);
+
+
+    QuerySpec spec = QuerySpec.create()
+                              .in("id", Arrays.asList(template.getLocators()));
+    Uni<Void> handler = repository.locator().findBySpec(spec)
+                                  .map(o -> {
+                                    RegisterTemplate v = new RegisterTemplate();
+                                    v.setRegisterLocators(o);
+                                    return v;
+                                  })
+                                  .chain(v -> {
+                                    v.setTagName(template.getTagName());
+                                    v.setName(template.getName());
+                                    v.setVersion(template.getVersion());
+                                    return repository.template().merge(v).replaceWithVoid();
+                                  });
+    handleResponse(handler, ctx, "添加模板失败");
   }
 
   /**
@@ -251,7 +268,12 @@ public class ModbusWebServer extends BaseVerticle {
                                                   return v;
                                                 })
                                   )
-                                  .chain(v -> repository.template().merge(v).replaceWithVoid());
+                                  .chain(v -> {
+                                    v.setTagName(template.getTagName());
+                                    v.setName(template.getName());
+                                    v.setVersion(template.getVersion());
+                                    return repository.template().merge(v).replaceWithVoid();
+                                  });
 
 
     handleResponse(handler, ctx, "修改模板失败");

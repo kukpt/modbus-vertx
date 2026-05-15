@@ -249,13 +249,9 @@ public class ModbusConnContext extends BaseVerticle {
 
       result.put("locators", new JsonArray(locators));
       log.trace("value: {}", result);
+
       MultiMap headers = MultiMap.caseInsensitiveMultiMap();
-      if (conn.getMqttPublishTopic() != null) {
-        headers.add("mqttPublishTopic", conn.getMqttPublishTopic());
-      } else {
-        String topic = String.format("/device/modbus/%s/message/report", conn.getDeviceId());
-        headers.add("mqttPublishTopic", topic);
-      }
+      headers.add("mqttPublishTopic", getMqttPublishTopic(conn));
 
       vertx.eventBus().publish(SAVE_VALUE, result, new DeliveryOptions().setHeaders(headers));
 
@@ -265,6 +261,19 @@ public class ModbusConnContext extends BaseVerticle {
     return null;
   }
 
+  private String getMqttPublishTopic(ModbusDeviceConn conn) {
+    //     /device/{templateTagName}/{deviceTagName}/message/report
+    String _topic = "/device/%s/%s/message/report";
+    String deviceTagName = conn.getDeviceTagName();
+    String templateTagName = conn.getTemplateTagName();
+    if (deviceTagName == null) {
+      deviceTagName = conn.getDeviceId().toString();
+    }
+    if (templateTagName == null) {
+      templateTagName = conn.getTemplateId().toString();
+    }
+    return String.format(_topic, templateTagName, deviceTagName);
+  }
 
   private void delConnHandler(Message<JsonObject> msg) {
     Long deviceId = msg.body().getLong("deviceId");

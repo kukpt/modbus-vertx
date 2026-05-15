@@ -32,11 +32,11 @@ CREATE TABLE `modbus_device` (
                                  `create_time` datetime DEFAULT NULL,
                                  `update_time` datetime DEFAULT NULL,
                                  `register_template_id` bigint NOT NULL,
-                                 `mqtt_publish_topic`   varchar(255) null,
-                                 `collect_interval`     int          null,
+                                 `tag_name` varchar(255) DEFAULT NULL,
+                                 `collect_interval` int DEFAULT NULL,
                                  PRIMARY KEY (`id`),
                                  KEY `modbus_device_ip_port_index` (`use_ip`,`use_port`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -46,8 +46,11 @@ CREATE TABLE `modbus_device` (
 LOCK TABLES `modbus_device` WRITE;
 /*!40000 ALTER TABLE `modbus_device` DISABLE KEYS */;
 INSERT INTO `modbus_device` VALUES
-                                (19,'测试-01',NULL,'192.168.1.5',508,NULL,'2026-05-12 10:43:48','2026-05-12 11:57:02',4, NULL, NULL),
-                                (22,'测试-02',NULL,'192.168.1.5',508,'\0','2026-05-12 11:32:22','2026-05-14 17:13:34',5, NULL, NULL);
+                                (19,'入库-泵站1',NULL,'192.168.40.93',502,'\0','2026-05-12 10:43:48','2026-05-15 10:54:34',4,'in_pump1',NULL),
+                                (22,'入库-泵站2',NULL,'192.168.40.93',508,'\0','2026-05-12 11:32:22','2026-05-15 10:55:53',5,'in_pump2',NULL),
+                                (24,'本地测试',NULL,'191.168.1.5',508,'\0','2026-05-15 10:47:17','2026-05-15 10:52:31',4,'local_test',NULL),
+                                (25,'入库-泵站3',NULL,'192.168.40.93',502,'\0','2026-05-15 10:55:36','2026-05-15 10:55:36',4,'in_pump3',NULL),
+                                (26,'入库-泵站4',NULL,'192.168.40.93',502,'\0','2026-05-15 10:56:36','2026-05-15 10:56:48',4,'in_pump4',NULL);
 /*!40000 ALTER TABLE `modbus_device` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -81,10 +84,10 @@ CREATE TABLE `register_locator` (
 LOCK TABLES `register_locator` WRITE;
 /*!40000 ALTER TABLE `register_locator` DISABLE KEYS */;
 INSERT INTO `register_locator` VALUES
-                                   (1,'NUMERIC_LOCATOR','40001 入库泵温度1',1,3,0,8,-1,'2026-05-07 17:23:52','2026-05-13 10:35:22','in.pump_1.temp'),
-                                   (3,'NUMERIC_LOCATOR','40003 入库泵温度2',1,3,2,8,-1,'2026-05-12 14:26:06','2026-05-13 10:35:26','in.pump_2.temp'),
-                                   (4,'NUMERIC_LOCATOR','40005 入库泵温度3',1,3,4,8,-1,'2026-05-13 10:47:08',NULL,'in.pump_3.temp'),
-                                   (5,'NUMERIC_LOCATOR','40007 入库泵温度4',1,3,6,8,-1,'2026-05-13 10:47:08',NULL,'in.pump_4.temp'),
+                                   (1,'NUMERIC_LOCATOR','40001 入库泵温度1',1,3,0,8,-1,'2026-05-07 17:23:52','2026-05-15 10:57:09','temp'),
+                                   (3,'NUMERIC_LOCATOR','40003 入库泵温度2',1,3,2,8,-1,'2026-05-12 14:26:06','2026-05-15 10:57:15','temp'),
+                                   (4,'NUMERIC_LOCATOR','40005 入库泵温度3',1,3,4,8,-1,'2026-05-13 10:47:08','2026-05-15 10:57:19','temp'),
+                                   (5,'NUMERIC_LOCATOR','40007 入库泵温度4',1,3,6,8,-1,'2026-05-13 10:47:08','2026-05-15 10:57:25','temp'),
                                    (6,'NUMERIC_LOCATOR','40009 入库泵站前池液位',1,3,8,8,-1,'2026-05-13 10:47:08',NULL,NULL),
                                    (7,'NUMERIC_LOCATOR','40011 入库泵站出水池液位',1,3,10,8,-1,'2026-05-13 10:47:08',NULL,NULL),
                                    (8,'NUMERIC_LOCATOR','40013 进水浊度',1,3,12,8,-1,'2026-05-13 10:47:08',NULL,NULL),
@@ -95,10 +98,10 @@ INSERT INTO `register_locator` VALUES
                                    (13,'NUMERIC_LOCATOR','40023 进水PH值温度',1,3,22,8,-1,'2026-05-13 10:47:08',NULL,NULL),
                                    (14,'NUMERIC_LOCATOR','40025 进水电导率',1,3,24,8,-1,'2026-05-13 10:47:08',NULL,NULL),
                                    (15,'NUMERIC_LOCATOR','40027 进水电导率温度',1,3,26,8,-1,'2026-05-13 10:47:08',NULL,NULL),
-                                   (16,'NUMERIC_LOCATOR','40029 一号泵电流',1,3,28,8,-1,'2026-05-13 10:47:08',NULL,'in.pump_1.current'),
-                                   (17,'NUMERIC_LOCATOR','40031 二号泵电流',1,3,30,8,-1,'2026-05-13 10:47:08',NULL,'in.pump_2.current'),
-                                   (18,'NUMERIC_LOCATOR','40033 三号泵电流',1,3,32,8,-1,'2026-05-13 10:47:08',NULL,'in.pump_3.current'),
-                                   (19,'NUMERIC_LOCATOR','40035 四号泵电流',1,3,34,8,-1,'2026-05-13 10:47:08',NULL,'in.pump_4.current'),
+                                   (16,'NUMERIC_LOCATOR','40029 一号泵电流',1,3,28,8,-1,'2026-05-13 10:47:08','2026-05-15 10:57:34','current'),
+                                   (17,'NUMERIC_LOCATOR','40031 二号泵电流',1,3,30,8,-1,'2026-05-13 10:47:08',NULL,'current'),
+                                   (18,'NUMERIC_LOCATOR','40033 三号泵电流',1,3,32,8,-1,'2026-05-13 10:47:08',NULL,'current'),
+                                   (19,'NUMERIC_LOCATOR','40035 四号泵电流',1,3,34,8,-1,'2026-05-13 10:47:08',NULL,'current'),
                                    (20,'NUMERIC_LOCATOR','40037 入库闸门1号开度',1,3,36,8,-1,'2026-05-13 10:47:08',NULL,'in.gate_1.opening'),
                                    (21,'NUMERIC_LOCATOR','40039 入库闸门1号左荷重',1,3,38,8,-1,'2026-05-13 10:47:08',NULL,'in.gate_1.left_load'),
                                    (22,'NUMERIC_LOCATOR','40041 入库闸门1号右荷重',1,3,40,8,-1,'2026-05-13 10:47:08',NULL,'in.gate_1.right_load'),
@@ -118,9 +121,10 @@ DROP TABLE IF EXISTS `register_template`;
 CREATE TABLE `register_template` (
                                      `id` bigint NOT NULL AUTO_INCREMENT,
                                      `name` varchar(255) DEFAULT NULL,
+                                     `tag_name` varchar(255) DEFAULT NULL,
                                      `version` bigint DEFAULT NULL,
                                      PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -130,8 +134,10 @@ CREATE TABLE `register_template` (
 LOCK TABLES `register_template` WRITE;
 /*!40000 ALTER TABLE `register_template` DISABLE KEYS */;
 INSERT INTO `register_template` VALUES
-                                    (4,'模板1',1),
-                                    (5,'模板1',1);
+                                    (4,'入库泵1','pump',1),
+                                    (5,'入库泵2','pump',1),
+                                    (8,'入库泵3','pump',1),
+                                    (11,'入库泵4','pump',1);
 /*!40000 ALTER TABLE `register_template` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -160,8 +166,13 @@ LOCK TABLES `template_locator` WRITE;
 /*!40000 ALTER TABLE `template_locator` DISABLE KEYS */;
 INSERT INTO `template_locator` VALUES
                                    (4,1),
-                                   (4,3),
-                                   (5,3);
+                                   (4,16),
+                                   (5,3),
+                                   (5,17),
+                                   (8,4),
+                                   (8,18),
+                                   (11,5),
+                                   (11,19);
 /*!40000 ALTER TABLE `template_locator` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -174,4 +185,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-14 17:15:38
+-- Dump completed on 2026-05-15 11:02:23

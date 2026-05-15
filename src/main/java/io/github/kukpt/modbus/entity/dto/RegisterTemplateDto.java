@@ -8,6 +8,9 @@ public class RegisterTemplateDto {
 
   private String name;
 
+  private String tagName;
+
+
   private Long version;
 
   Long[] locators;

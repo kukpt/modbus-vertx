@@ -478,7 +478,7 @@ function deviceForm(device = {}, templates = []) {
     ${selectField("onlineState", "在线状态", device.onlineState, ["ONLINE", "OFFLINE"])}
     ${checkboxField("getOnlyChanged", "仅变化上报", device.getOnlyChanged)}
     ${inputField("tagName", "标签", device.deviceTagName)}
-    ${inputField("collectInterval", "采集间隔", device.collectInterval, "number", "min=\"1\"")}
+    ${inputField("collectInterval", "采集间隔（秒）", device.collectInterval, "number", "min=\"1\"")}
   `);
 }
 

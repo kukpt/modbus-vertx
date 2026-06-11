@@ -78,8 +78,9 @@ config/modbus-vertx.yaml
 | `_MOD_DB_USER` | MySQL 用户名 | `modbus_vertx` |
 | `_MOD_DB_PASSWORD` | MySQL 密码 | `******` |
 | `_MOD_HTTP_PORT` | HTTP 服务端口 | `17888` |
+| `_MOD_HTTP_ENABLE` | 是否启用 HTTP API 和静态管理页面 | `true` |
 | `_MOD_MODBUS_POOL_SIZE` | Modbus 轮询工作线程数 | `4` |
-| `_MOD_MODBUS_QUERY_INTERVAL` | Modbus 轮询间隔，单位秒 | `2` |
+| `_MOD_MODBUS_QUERY_INTERVAL` | Modbus 采集调度检查间隔，单位秒；设备实际采集间隔由 `collect_interval` 控制 | `1` |
 | `_MOD_MODBUS_RECONNECTION_INTERVAL` | 断线重连间隔，单位秒 | `10` |
 | `_MOD_MQTT_CLIENT_HOST` | MQTT Broker 地址 | `127.0.0.1` |
 | `_MOD_MQTT_CLIENT_PORT` | MQTT Broker 端口 | `1883` |
@@ -131,7 +132,8 @@ DB_PORT=12067
 DB_DATA_PATH=./data/mysql
 
 MODBUS_WEB_SERVER_PORT=17888
-MODBUS_QUERY_INTERVAL=2
+MODBUS_HTTP_ENABLE=false
+MODBUS_QUERY_INTERVAL=1
 
 MQTT_CLIENT_USERNAME=user
 MQTT_CLIENT_PASSWORD=password

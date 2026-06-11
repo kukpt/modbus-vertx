@@ -18,6 +18,8 @@ import io.vertx.core.json.jackson.DatabindCodec;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Slf4j
@@ -61,12 +63,22 @@ public class MainVerticle extends AbstractVerticle {
    * @return
    */
   private Uni<JsonObject> deploy(JsonObject conf) {
-    return Uni.join().all(
-                  vertx.deployVerticle(new ModbusConnContext(), new DeploymentOptions().setConfig(conf)),
-                  vertx.deployVerticle(new ModbusWebServer(), new DeploymentOptions().setConfig(conf)),
-                  vertx.deployVerticle(new MqttClientVerticle(), new DeploymentOptions().setConfig(conf))
-              ).andCollectFailures()
+    List<Uni<String>> deployments = new ArrayList<>();
+    deployments.add(vertx.deployVerticle(new ModbusConnContext(), new DeploymentOptions().setConfig(conf)));
+    if (isHttpEnabled(conf)) {
+      deployments.add(vertx.deployVerticle(new ModbusWebServer(), new DeploymentOptions().setConfig(conf)));
+    } else {
+      log.info("HTTP Server disabled by _MOD_HTTP_ENABLE");
+    }
+    deployments.add(vertx.deployVerticle(new MqttClientVerticle(), new DeploymentOptions().setConfig(conf)));
+
+    return Uni.join().all(deployments)
+              .andCollectFailures()
               .replaceWith(conf);
+  }
+
+  private boolean isHttpEnabled(JsonObject conf) {
+    return Boolean.parseBoolean(String.valueOf(conf.getValue("_MOD_HTTP_ENABLE", true)));
   }
 
   /**

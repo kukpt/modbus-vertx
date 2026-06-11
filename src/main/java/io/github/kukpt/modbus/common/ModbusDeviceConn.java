@@ -55,6 +55,8 @@ public class ModbusDeviceConn {
   @Getter
   private final Integer collectInterval;
 
+  private long lastCollectAt = 0L;
+
   @Getter
   private final Long deviceId;
 
@@ -78,6 +80,18 @@ public class ModbusDeviceConn {
 
   public void destroy() {
     master.destroy();
+  }
+
+  public synchronized boolean shouldCollectAndMark(long now, int defaultCollectIntervalSeconds) {
+    int intervalSeconds = collectInterval == null || collectInterval <= 0
+        ? defaultCollectIntervalSeconds
+        : collectInterval;
+    long intervalMillis = java.util.concurrent.TimeUnit.SECONDS.toMillis(intervalSeconds);
+    if (now - lastCollectAt < intervalMillis) {
+      return false;
+    }
+    lastCollectAt = now;
+    return true;
   }
 
   /**

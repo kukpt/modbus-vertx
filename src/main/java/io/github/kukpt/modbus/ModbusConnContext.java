@@ -104,7 +104,7 @@ public class ModbusConnContext extends BaseVerticle {
 
   private final static int DEFAULT_POOL_SIZE = 4;
 
-  private final static int DEFAULT_QUERY_INTERVAL = 2;
+  private final static int DEFAULT_QUERY_INTERVAL = 1;
 
   private final static int DEFAULT_RECONNECTION_INTERVAL = 10;
 
@@ -113,13 +113,13 @@ public class ModbusConnContext extends BaseVerticle {
     Object qi = config().getValue("_MOD_MODBUS_QUERY_INTERVAL", DEFAULT_QUERY_INTERVAL);
     Object rei = config().getValue("_MOD_MODBUS_RECONNECTION_INTERVAL", DEFAULT_RECONNECTION_INTERVAL);
     this.poolSize = Integer.parseInt(String.valueOf(ps));;
-    this.queryInterval =Integer.parseInt(String.valueOf(qi));
+    this.queryInterval = Math.max(1, Integer.parseInt(String.valueOf(qi)));
     this.reconnectionInterval = Integer.parseInt(String.valueOf(rei));
   }
 
   private int poolSize; // 线程池大小
 
-  private int queryInterval; // 问询时间间隔 秒
+  private int queryInterval; // 采集调度检查间隔 秒，设备实际采集间隔由 collectInterval 控制
 
   private int reconnectionInterval; // 断线重连间隔 秒
 
@@ -136,7 +136,7 @@ public class ModbusConnContext extends BaseVerticle {
     vertx.eventBus().<JsonObject>localConsumer(DEL_MODBUS_CONN_TOPIC, this::delConnHandler);
     vertx.eventBus().<JsonObject>localConsumer(SET_MODBUS_REGISTER_VALUE, this::setConnValue);
     vertx.eventBus().<JsonObject>localConsumer(SET_MODBUS_REGISTER_BIT_VALUE, this::setConnBitValue);
-    // modbusTCP 问询任务
+    // modbusTCP 采集调度检查任务，设备实际采集间隔由 collectInterval 控制
     vertx.setPeriodic(TimeUnit.SECONDS.toMillis(queryInterval), this::getConnValue);
     // 断线重连任务
     vertx.setPeriodic(TimeUnit.SECONDS.toMillis(reconnectionInterval), this::reConnectHandler);
@@ -221,7 +221,11 @@ public class ModbusConnContext extends BaseVerticle {
    */
   private void getConnValue(Long id) {
     List<ModbusDeviceConn> clients = conns.values().stream().toList();
+    long now = System.currentTimeMillis();
     for (ModbusDeviceConn conn : clients) {
+      if (!conn.shouldCollectAndMark(now, queryInterval)) {
+        continue;
+      }
       executor.executeBlockingAndForget(() -> this.getValueBlockingHandler(conn), false);
     }
   }

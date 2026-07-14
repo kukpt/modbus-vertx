@@ -139,7 +139,6 @@ MQTT_CLIENT_USERNAME=user
 MQTT_CLIENT_PASSWORD=password
 MQTT_CLIENT_HOST=127.0.0.1
 MQTT_CLIENT_PORT=1883
-MQTT_PUBLISH_TOPIC=/device/modbus/message/report
 ```
 
 启动：
@@ -266,6 +265,14 @@ http://127.0.0.1:17888
   ]
 }
 ```
+
+## 管理页面
+
+![设备管理页面](doc/images/modbus-vert.x-1.png)
+
+![寄存器定位器管理页面](doc/images/modbus-vert.x-2.png)
+
+![寄存器模板管理页面](doc/images/modbus-vert.x-3.png)
 
 ## 测试
 

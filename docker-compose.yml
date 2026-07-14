@@ -22,26 +22,25 @@ services:
       timeout: 5s
       retries: 5
 
-#  modbus-app:
-#    image: ttl.sh/modbus-vertx-9361223c-1eb1-40e0-a61f-5ec5c6dbeae6:2h
-#    container_name: modbus-vertx-app
-#    restart: always
-#    depends_on:
-#      db:
-#        condition: service_healthy
-#    environment:
-#      - _MOD_DB_URL=jdbc:mysql://db:3306/${MYSQL_DATABASE}
-#      - _MOD_DB_USER=${MYSQL_USER}
-#      - _MOD_DB_PASSWORD=${MYSQL_PASSWORD}
-#      - _MOD_HTTP_ENABLE=${MODBUS_HTTP_ENABLE}
-#      - _MOD_MODBUS_QUERY_INTERVAL=${MODBUS_QUERY_INTERVAL}
-#      - _MOD_MQTT_CLIENT_USERNAME=${MQTT_CLIENT_USERNAME}
-#      - _MOD_MQTT_CLIENT_PASSWORD=${MQTT_CLIENT_PASSWORD}
-#      - _MOD_MQTT_CLIENT_PORT=${MQTT_CLIENT_PORT}
-#      - _MOD_MQTT_CLIENT_HOST=${MQTT_CLIENT_HOST}
-#      - _MOD_MQTT_PUBLISH_TOPIC=${MQTT_PUBLISH_TOPIC}
-#    ports:
-#      - ${MODBUS_WEB_SERVER_PORT}:17888
+  modbus-app:
+    image: ttl.sh/modbus-vertx-9361223c-1eb1-40e0-a61f-5ec5c6dbeae6:2h
+    container_name: modbus-vertx-app
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - _MOD_DB_URL=jdbc:mysql://db:3306/${MYSQL_DATABASE}
+      - _MOD_DB_USER=${MYSQL_USER}
+      - _MOD_DB_PASSWORD=${MYSQL_PASSWORD}
+      - _MOD_HTTP_ENABLE=${MODBUS_HTTP_ENABLE}
+      - _MOD_MODBUS_QUERY_INTERVAL=${MODBUS_QUERY_INTERVAL}
+      - _MOD_MQTT_CLIENT_USERNAME=${MQTT_CLIENT_USERNAME}
+      - _MOD_MQTT_CLIENT_PASSWORD=${MQTT_CLIENT_PASSWORD}
+      - _MOD_MQTT_CLIENT_PORT=${MQTT_CLIENT_PORT}
+      - _MOD_MQTT_CLIENT_HOST=${MQTT_CLIENT_HOST}
+    ports:
+      - ${MODBUS_WEB_SERVER_PORT}:17888
 
 networks:
   default:
